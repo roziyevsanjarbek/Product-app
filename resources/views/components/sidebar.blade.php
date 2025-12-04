@@ -1,0 +1,61 @@
+<style>
+.sidebar {
+    position: fixed;      /* doimiy chap tomonda turadi */
+    width: 240px;
+    background: #1f2937;  /* navbar bilan bir xil rang */
+    color: #fff;
+    height: 100vh;
+    padding-top: 20px;
+    z-index: 1000;        /* navbar ustida chiqmasligi uchun */
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    color: #ddd;
+    text-decoration: none;
+    font-size: 16px;
+    transition: 0.2s ease;
+}
+
+.nav-item:hover {
+    background: #333;
+}
+
+.nav-item.active {
+    background: #4a90e2;
+    color: white;
+    font-weight: bold;
+}
+
+
+</style>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2>EGS Admin</h2>
+    </div>
+
+    <a class="nav-item {{ request()->is('admin/dashboard') ? 'active' : '' }}"
+       href="{{ route('dashboard') }}">
+        📊 Dashboard
+    </a>
+
+    <a class="nav-item {{ request()->is('admin/products*') ? 'active' : '' }}"
+       href="/admin/products">
+        📦 Mahsulotlar
+    </a>
+
+    <a class="nav-item {{ request()->is('admin/sold*') ? 'active' : '' }}"
+       href="/admin/sold">
+        💰 Sotilganlar
+    </a>
+
+    <a class="nav-item {{ request()->is('admin/users*') ? 'active' : '' }}"
+       href="/admin/users">
+        👥 Foydalanuvchilar
+    </a>
+
+</div>
