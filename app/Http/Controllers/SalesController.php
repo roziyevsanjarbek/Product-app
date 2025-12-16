@@ -6,6 +6,8 @@ use App\Models\Sales;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
 {
@@ -175,25 +177,68 @@ class SalesController extends Controller
 
     public function destroy($id)
     {
-        $sale = Sales::find($id);
+        $sale = Sales::withTrashed()->find($id);
 
-        if (!$sale) {
-            return response()->json(['message' => 'Sale not found'], 404);
+        if (!$sale || $sale->trashed()) {
+            return response()->json(['message' => 'Sale not found or already deleted'], 404);
         }
 
-        $product = $sale->product;
+        DB::transaction(function () use ($sale) {
 
-        // Product miqdorini tiklash
-        $product->quantity += $sale->quantity;
-        $product->save();
+            // Product quantity qaytarish
+            $sale->product->increment('quantity', $sale->quantity);
 
-        // Sale o'chirish
-        $sale->delete();
+            // Soft delete + deleted_by
+            $sale->deleted_by = Auth::id();
+            $sale->save();
+            $sale->delete();
+        });
 
         return response()->json([
             'message' => 'Sale deleted successfully'
         ]);
     }
+
+    public function restore($id)
+    {
+        $sale = Sales::onlyTrashed()->findOrFail($id);
+
+        DB::transaction(function () use ($sale) {
+            // Product quantity kamaytirish
+            $sale->product->decrement('quantity', $sale->quantity);
+
+            // Restore
+            $sale->restore();
+            $sale->deleted_by = null;
+            $sale->save();
+        });
+
+        return response()->json(['message' => 'Sale restored successfully']);
+    }
+
+    public function history()
+    {
+        $sales = Sales::withTrashed()
+            ->with(['product', 'creator', 'deletedBy'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($sale) {
+                return [
+                    'product' => $sale->product->name ?? 'Noma’lum',
+                    'quantity' => $sale->quantity,
+                    'total_price' => $sale->total_price,
+                    'user' => $sale->creator->name ?? 'Noma’lum', // ⚠ shu o‘zgardi
+                    'date' => $sale->created_at->format('d.m.Y H:i'),
+                    'status' => $sale->deleted_at ? 'O‘chirilgan' : 'Sotilgan',
+                    'deleted_by' => $sale->deletedBy->name ?? null,
+                ];
+            });
+
+        return response()->json($sales);
+    }
+
+
+
 
 
 }

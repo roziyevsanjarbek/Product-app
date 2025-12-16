@@ -40,7 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sales', [SalesController::class, 'store']);
     Route::post('/sales/{id}', [SalesController::class, 'update']);
     Route::delete('/sales/{id}', [SalesController::class, 'destroy']);
-
+    Route::post('/sales/restore/{id}', [SalesController::class, 'restore']);
+    Route::get('/sales/history', [SalesController::class, 'history']);
 
 
 });

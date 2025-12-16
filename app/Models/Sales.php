@@ -3,15 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sales extends Model
 {
+    use softDeletes;
+
     protected $table = 'sales';
 
     protected $fillable = [
         'product_id',
         'quantity',
         'total_price',
+        'deleted_by',
         'created_by',
     ];
 
@@ -25,5 +29,10 @@ class Sales extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

@@ -328,6 +328,14 @@
             justify-content: center;     /* justify-center */
             align-items: center;         /* align-center (to‘g‘risi: items-center) */
         }
+        .btn-history{
+            padding: 5px;
+            border-radius: 10px;
+            background-color: #4ffb24;   /* bg-amber-400 */
+            display: flex;               /* flex */
+            justify-content: center;     /* justify-center */
+            align-items: center;         /* align-center (to‘g‘risi: items-center) */
+        }
     </style>
 </head>
 <body>
@@ -391,7 +399,38 @@
         </div>
     </div>
 </div>
-<script>
+
+    <!-- Sales History Modal -->
+    <div id="salesModal" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div class="modal-content" style="background:#0f172a; color:#fff; max-width:900px; margin:50px auto; padding:20px; border-radius:8px; position:relative;">
+            <span class="close-modal" onclick="closeSalesModal()" style="position:absolute; top:10px; right:20px; cursor:pointer; font-size:28px;">&times;</span>
+            <h2>Sotuvlar tarixi</h2>
+            <div class="table-container" style="overflow-x:auto;">
+                <table style="width:100%; border-collapse: collapse;">
+                    <thead>
+                    <tr>
+                        <th>Mahsulot</th>
+                        <th>Miqdor</th>
+                        <th>Jami (so'm)</th>
+                        <th>Kim sotdi</th>
+                        <th>Sana</th>
+                        <th>Holat</th>
+                        <th>O‘chirgan User</th>
+                    </tr>
+                    </thead>
+                    <tbody id="salesTableHistory">
+                    <tr>
+                        <td colspan="7" style="text-align:center;">Sotuv mavjud emas</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
     document.addEventListener("DOMContentLoaded", function () {
         loadUsers();
         loadProducts();
@@ -458,6 +497,67 @@
             console.error("Mahsulotlarni yuklab bo'lmadi:", err);
         }
     }
+
+    // History modal
+    function openSalesHistoryModal(productId = null) {
+        const modal = document.getElementById("salesModal");
+        modal.style.display = "block"; // modalni ochish
+
+        const tbody = document.getElementById("salesTableHistory");
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">Yuklanmoqda...</td></tr>`;
+
+        fetch(`${API_BASE}/sales/history`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Accept": "application/json"
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+                const filtered = productId ? data.filter(item => item.product_id == productId) : data;
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">Sotuv mavjud emas</td></tr>`;
+                    return;
+                }
+
+                filtered.forEach(item => {
+                    const statusColor = item.status === "O‘chirilgan" ? "color:gray;" : "color:white;";
+                    tbody.innerHTML += `
+                <tr style="${statusColor}">
+                    <td>${item.product}</td>
+                    <td>-${item.quantity}</td>
+                    <td>${item.total_price}</td>
+                    <td>${item.user}</td>
+                    <td>${item.date}</td>
+                    <td>${item.status}</td>
+                    <td>${item.deleted_by ?? '-'}</td>
+                </tr>
+            `;
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">Xatolik yuz berdi</td></tr>`;
+            });
+    }
+
+    function closeSalesModal() {
+        document.getElementById("salesModal").style.display = "none";
+    }
+
+
+    document.getElementById("soldTableBody").addEventListener("click", function(e) {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        if (btn.classList.contains("history-btn")) {
+            const productId = btn.dataset.id;
+            openSalesHistoryModal(productId);
+        }
+    });
+
 
     // Form submit
     document.getElementById("soldForm").addEventListener("submit", async function(e) {
@@ -564,6 +664,9 @@
                     <button class="btn-delete" data-id="${sale.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" color="white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-icon lucide-trash"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                      </button>
+                     <button class="btn-history history-btn" data-id="">
+                        <svg xmlns="http://www.w3.org/2000/svg" color="white" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                    </button>
                 </td>
 
             `;

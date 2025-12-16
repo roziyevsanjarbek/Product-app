@@ -17,6 +17,8 @@ return new class extends Migration
             $table->integer('quantity');
             $table->string('total_price');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->onDelete('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
