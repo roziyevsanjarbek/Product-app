@@ -30,8 +30,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/product', [ProductController::class, 'store']);
     Route::post('/products/update-price-and-add', [ProductController::class, 'updatePriceAndAdd']);
     Route::post('/products/force-create', [ProductController::class, 'forceCreate']);
-
-
     Route::post('/product/{id}', [ProductController::class, 'update']);
     Route::delete('/product/{id}', [ProductController::class, 'destroy']);
 

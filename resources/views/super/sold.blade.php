@@ -428,8 +428,33 @@
         </div>
     </div>
 
+    <!-- Edit Sale Modal -->
+    <div id="editSaleModal"
+         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
 
+        <form id="editSaleForm"
+              style="background:#1e293b; padding:20px; border-radius:8px; width:400px; color:white;">
 
+            <h3>Sotuvni tahrirlash</h3>
+
+            <input type="hidden" id="editSaleId">
+
+            <div class="form-group">
+                <label>Mahsulot Soni</label>
+                <input type="number" id="editSaleQty" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mahsulot Narxi</label>
+                <input type="number" id="editSalePrice" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+            <button type="button" class="btn btn-danger" onclick="closeEditSaleModal()">Bekor qilish</button>
+
+        </form>
+    </div>
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         loadUsers();
@@ -710,46 +735,60 @@
 
         // UPDATE
         if (btn.classList.contains("btn-update")) {
-            const id = btn.dataset.id;
-            const oldQty = btn.dataset.qty;
-            const oldPrice = btn.dataset.price;
+            const sale = {
+                id: btn.dataset.id,
+                quantity: btn.dataset.qty,
+                price: btn.dataset.price
+            };
+            openEditSaleModal(sale);
+        }
+    });
+    function openEditSaleModal(sale) {
+        document.getElementById("editSaleId").value = sale.id;
+        document.getElementById("editSaleQty").value = sale.quantity;
+        document.getElementById("editSalePrice").value = sale.price;
 
-            const newQty = prompt("Sotilgan sonini kiriting:", oldQty);
-            if (newQty === null) return;
+        document.getElementById("editSaleModal").style.display = "flex";
+    }
 
-            const newPrice = prompt("Narxini kiriting:", oldPrice);
-            if (newPrice === null) return;
+    function closeEditSaleModal() {
+        document.getElementById("editSaleModal").style.display = "none";
+    }
 
-            try {
-                const res = await fetch(`${API_BASE}/sales/${id}`, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        quantity: newQty,
-                        price: newPrice
-                    })
-                });
+    document.getElementById("editSaleForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-                const data = await res.json();
-                if (res.ok) {
-                    alert("Sotuv yangilandi!");
-                    loadSales();
-                } else {
-                    alert(data.message || "Xatolik yuz berdi");
-                }
+        const id = document.getElementById("editSaleId").value;
+        const quantity = document.getElementById("editSaleQty").value;
+        const price = document.getElementById("editSalePrice").value;
 
-            } catch (err) {
-                console.error(err);
-                alert("Serverga ulanib bo'lmadi");
+        try {
+            const res = await fetch(`${API_BASE}/sales/${id}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ quantity, price })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert("Sotuv yangilandi!");
+                closeEditSaleModal();
+                loadSales();
+            } else {
+                alert(data.message || "Xatolik yuz berdi");
             }
+        } catch (err) {
+            console.error(err);
+            alert("Serverga ulanib bo'lmadi");
         }
     });
 
-</script>
+
+    </script>
 </body>
 </html>
 

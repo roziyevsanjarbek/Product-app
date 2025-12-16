@@ -491,37 +491,38 @@
 </div>
 
  <!-- Edit Modal HTML -->
-<div id="editUserModal"
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    <div id="editUserModal"
+         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
      background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
 
-    <form id="editUserForm"
-          style="background:#1e293b; padding:20px; border-radius:8px; width:400px;">
+        <form id="editUserForm"
+              style="background:#1e293b; padding:20px; border-radius:8px; width:400px; color:white;">
 
-        <h3>Mahsulotni tahrirlash</h3>
+            <h3>Mahsulotni tahrirlash</h3>
 
-        <input type="hidden" id="editUserId">
+            <input type="hidden" id="editUserId">
 
-        <div class="form-group">
-            <label>Mahsulot Nomi</label>
-            <input type="text" id="editUserName" required>
-        </div>
+            <div class="form-group">
+                <label>Mahsulot Nomi</label>
+                <input type="text" id="editUserName" required>
+            </div>
 
-        <div class="form-group">
-            <label>Mahsulot Soni</label>
-            <input type="email" id="editUserEmail" required>
-        </div>
+            <div class="form-group">
+                <label>Mahsulot Soni</label>
+                <input type="number" id="editUserQty" required>
+            </div>
 
-        <div class="form-group">
-            <label>Mahsulot Narxi</label>
-            <input type="email" id="editUserEmail" required>
-        </div>
+            <div class="form-group">
+                <label>Mahsulot Narxi</label>
+                <input type="number" id="editUserPrice" required>
+            </div>
 
-        <button type="submit" class="btn btn-primary">Saqlash</button>
-        <button type="button" class="btn btn-danger" onclick="closeEditModal()">Bekor qilish</button>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+            <button type="button" class="btn btn-danger" onclick="closeEditModal()">Bekor qilish</button>
 
-    </form>
-</div>
+        </form>
+    </div>
+
 
     <!-- Product Modal HTML -->
     <div id="productModal">
@@ -882,50 +883,66 @@
         }
 
         // UPDATE
-        if (btn.classList.contains("btn-edit")) {
-            const id = btn.dataset.id;
-            const name = btn.dataset.name;
-            const qty = btn.dataset.qty;
-            const price = btn.dataset.price;
-
-            const newName = prompt("Mahsulot nomini kiriting:", name);
-            if (newName === null) return;
-
-            const newQty = prompt("Mahsulot sonini kiriting:", qty);
-            if (newQty === null) return;
-
-            const newPrice = prompt("Mahsulot narxini kiriting:", price);
-            if (newPrice === null) return;
-
-            try {
-                const res = await fetch(`${API_BASE}/product/${id}`, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        name: newName,
-                        quantity: newQty,
-                        price: newPrice
-                    })
-                });
-
-                const data = await res.json();
-                if (res.ok) {
-                    alert("Mahsulot yangilandi!");
-                    loadProducts();
-                } else {
-                    alert(data.message || "Xatolik yuz berdi");
-                }
-
-            } catch (err) {
-                console.error(err);
-                alert("Serverga ulanib bo'lmadi");
-            }
+        if (btn && btn.classList.contains("btn-edit")) {
+            const product = {
+                id: btn.dataset.id,
+                name: btn.dataset.name,
+                quantity: btn.dataset.qty,
+                price: btn.dataset.price
+            };
+            openEditModal(product); // modalni ochadi va inputlarni to‘ldiradi
         }
     });
+
+    function openEditModal(product) {
+        document.getElementById("editUserId").value = product.id;
+        document.getElementById("editUserName").value = product.name;
+        document.getElementById("editUserQty").value = product.quantity;
+        document.getElementById("editUserPrice").value = product.price;
+
+        document.getElementById("editUserModal").style.display = "flex";
+    }
+
+    function closeEditModal() {
+        document.getElementById("editUserModal").style.display = "none";
+    }
+
+    document.getElementById("editUserForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem("token");
+
+        const id = document.getElementById("editUserId").value;
+        const name = document.getElementById("editUserName").value;
+        const quantity = document.getElementById("editUserQty").value;
+        const price = document.getElementById("editUserPrice").value;
+
+        try {
+            const res = await fetch(`${API_BASE}/product/${id}`, {
+                method: "POST", // yoki PUT, sening backend route ga qarab
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, quantity, price })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alert("Mahsulot yangilandi!");
+                closeEditModal();
+                loadProducts();
+            } else {
+                alert(data.message || "Xatolik yuz berdi");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Serverga ulanib bo'lmadi");
+        }
+    });
+
 
     // MODAL PRIMARY BUTTON — Mavjud mahsulot narxini yangilash
     document.querySelector("#product .btn-primary").addEventListener("click", async function(e) {

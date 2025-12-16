@@ -509,13 +509,13 @@
     </div>
 </div>
 
-<!-- Edit Modal HTML -->
+<!-- Edit Product Modal -->
 <div id="editUserModal"
      style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
      background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
 
     <form id="editUserForm"
-          style="background:#1e293b; padding:20px; border-radius:8px; width:400px;">
+          style="background:#1e293b; padding:20px; border-radius:8px; width:400px; color:white;">
 
         <h3>Mahsulotni tahrirlash</h3>
 
@@ -528,12 +528,12 @@
 
         <div class="form-group">
             <label>Mahsulot Soni</label>
-            <input type="email" id="editUserEmail" required>
+            <input type="number" id="editUserQty" required>
         </div>
 
         <div class="form-group">
             <label>Mahsulot Narxi</label>
-            <input type="email" id="editUserEmail" required>
+            <input type="number" id="editUserPrice" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Saqlash</button>
@@ -900,51 +900,66 @@
             }
 
             // UPDATE
-            if (btn.classList.contains("btn-edit")) {
-                const id = btn.dataset.id;
-                const name = btn.dataset.name;
-                const qty = btn.dataset.qty;
-                const price = btn.dataset.price;
+        if (btn && btn.classList.contains("btn-edit")) {
+            const product = {
+                id: btn.dataset.id,
+                name: btn.dataset.name,
+                quantity: btn.dataset.qty,
+                price: btn.dataset.price
+            };
+            openEditModal(product); // modalni ochadi va inputlarni to‘ldiradi
+        }
 
-                const newName = prompt("Mahsulot nomini kiriting:", name);
-                if (newName === null) return;
+    });
+    function openEditModal(product) {
+        document.getElementById("editUserId").value = product.id;
+        document.getElementById("editUserName").value = product.name;
+        document.getElementById("editUserQty").value = product.quantity;
+        document.getElementById("editUserPrice").value = product.price;
 
-                const newQty = prompt("Mahsulot sonini kiriting:", qty);
-                if (newQty === null) return;
+        document.getElementById("editUserModal").style.display = "flex";
+    }
 
-                const newPrice = prompt("Mahsulot narxini kiriting:", price);
-                if (newPrice === null) return;
+    function closeEditModal() {
+        document.getElementById("editUserModal").style.display = "none";
+    }
 
-                try {
-                    const res = await fetch(`${API_BASE}/product/${id}`, {
-                        method: "POST",
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Accept": "application/json",
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            name: newName,
-                            quantity: newQty,
-                            price: newPrice
-                        })
-                    });
+    document.getElementById("editUserForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-                    const data = await res.json();
-                    if (res.ok) {
-                        alert("Mahsulot yangilandi!");
-                        loadProducts();
-                    } else {
-                        alert(data.message || "Xatolik yuz berdi");
-                    }
+        const token = localStorage.getItem("token");
 
-                } catch (err) {
-                    console.error(err);
-                    alert("Serverga ulanib bo'lmadi");
-                }
+        const id = document.getElementById("editUserId").value;
+        const name = document.getElementById("editUserName").value;
+        const quantity = document.getElementById("editUserQty").value;
+        const price = document.getElementById("editUserPrice").value;
+
+        try {
+            const res = await fetch(`${API_BASE}/product/${id}`, {
+                method: "POST", // yoki PUT, sening backend route ga qarab
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, quantity, price })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alert("Mahsulot yangilandi!");
+                closeEditModal();
+                loadProducts();
+            } else {
+                alert(data.message || "Xatolik yuz berdi");
             }
+        } catch (err) {
+            console.error(err);
+            alert("Serverga ulanib bo'lmadi");
+        }
+    });
 
-                });
 
     // MODAL PRIMARY BUTTON — Mavjud mahsulot narxini yangilash
     document.querySelector("#product .btn-primary").addEventListener("click", async function(e) {
