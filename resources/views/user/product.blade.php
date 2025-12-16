@@ -453,7 +453,7 @@
 
 
      <script>
-    const API_BASE = "http://localhost:8000/api";
+    const API_BASE = "/api";
 
 
     document.getElementById("productForm").addEventListener("submit", async function(e) {
@@ -573,7 +573,7 @@
 
 
         try {
-            const res = await fetch("http://localhost:8000/api/products/update-price-and-add", {
+            const res = await fetch("/api/products/update-price-and-add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -608,7 +608,7 @@
         const bodyData = { name, quantity, price };
 
         try {
-            const res = await fetch("http://localhost:8000/api/products/force-create", {
+            const res = await fetch("/api/products/force-create", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

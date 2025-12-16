@@ -396,7 +396,7 @@
         loadUsers();
         loadProducts();
     });
-    const API_BASE = "http://localhost:8000/api";
+    const API_BASE = "/api";
     // Tokenni globalga olish
     const token = localStorage.getItem("token");
 

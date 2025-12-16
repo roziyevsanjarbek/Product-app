@@ -14,7 +14,7 @@ Route::get('/', function () {
 
 Route::get('/login', [HomeController::class, 'login'])->name('login');
 Route::get('/logout', [HomeController::class, 'logout'])->name('logout');
-Route::get('/super-logout', [HomeController::class, 'superLogout'])->name('logout');
+Route::get('/super-logout', [HomeController::class, 'superLogout'])->name('super-logout');
 Route::get('/user-logout', [HomeController::class, 'userLogout'])->name('userLogout');
 
 Route::get('/super/dashboard', [HomeController::class, 'superDashboard'])->name('superDashboard');
@@ -28,7 +28,7 @@ Route::get('/admin/dashboard', [HomeController::class, 'dashboard'])->name('dash
 Route::get('/admin/products', [HomeController::class, 'products'])->name('products');
 Route::get('/admin/sold', [HomeController::class, 'sold'])->name('sold');
 Route::get('/admin/users', [HomeController::class, 'users'])->name('users');
-Route::get('/admin/profile', [HomeController::class, 'profile'])->name('profile');
+Route::get('/admin/profile', [HomeController::class, 'profile']);
 
 
 Route::get('/user/dashboard', [HomeController::class, 'userDashboard'])->name('userDashboard');

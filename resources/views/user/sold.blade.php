@@ -371,7 +371,7 @@
     </div>
 </div>
 <script>
-    const API_BASE = "http://localhost:8000/api";
+    const API_BASE = "/api";
 
     document.addEventListener("DOMContentLoaded", function () {
     loadProducts();

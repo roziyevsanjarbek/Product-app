@@ -594,9 +594,9 @@
 
 <script>
     const token = localStorage.getItem("token");
-    const API_BASE = "http://localhost:8000/api";
+    const API_BASE = "/api";
     // API dan login user ma'lumotini olish
-    fetch('https://product.websol.uz/api/profile', {
+    fetch('/api/profile', {
         headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"

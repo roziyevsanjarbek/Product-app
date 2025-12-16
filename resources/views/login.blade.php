@@ -295,42 +295,36 @@
 </div>
 
 <script>
-    const API_BASE = "http://localhost:8000/api";
     document.getElementById('login-from').addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
-        const res = await fetch(`${API_BASE}/login`, {
+        const res = await fetch(`/api/login`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({email, password})
         });
 
         const data = await res.json();
         console.log(data);
+
         if (res.ok) {
-            // token bilan dashboardga redirect
             localStorage.setItem('token', data.access_token);
+            localStorage.setItem('userName', data.user.name);
+            localStorage.setItem('userEmail', data.user.email);
+            localStorage.setItem('userRole', JSON.stringify(data.roles));
 
-            // ✅ Foydalanuvchi ma'lumotlarini saqlash
-            localStorage.setItem('userName', data.user.name);    // ismi
-            localStorage.setItem('userEmail', data.user.email);  // emaili
-            localStorage.setItem('userRole', JSON.stringify(data.roles)); // role array
-
-
-
-            const userRoles = data.roles; // ['admin'] ko'rinishida array
-            console.log(userRoles);
+            const userRoles = data.roles;
             if (userRoles.includes('superAdmin')) {
                 window.location.href = '/super/dashboard';
             } else if (userRoles.includes('admin')) {
                 window.location.href = '/admin/dashboard';
-            }else if (userRoles.includes('user')) {
+            } else if (userRoles.includes('user')) {
                 window.location.href = '/user/dashboard';
             } else {
                 window.location.href = '/404';
@@ -339,7 +333,6 @@
             alert(data.message);
         }
     });
-
 </script>
 </body>
 </html>

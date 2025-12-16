@@ -598,7 +598,7 @@
     document.addEventListener("DOMContentLoaded", function () {
         loadUsers();
     });
-    const API_BASE = "http://localhost:8000/api";
+    const API_BASE = "/api";
     function loadUsers() {
         const token = localStorage.getItem("token");
 
@@ -799,7 +799,7 @@
 
     async function loadProductHistory(userId) {
         try {
-            const res = await fetch(`http://localhost:8000/api/products/history/${userId}`, {
+            const res = await fetch(`/api/products/history/${userId}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -966,7 +966,7 @@
 
 
         try {
-            const res = await fetch("http://localhost:8000/api/products/update-price-and-add", {
+            const res = await fetch("/api/products/update-price-and-add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -1001,7 +1001,7 @@
         const bodyData = { name, quantity, price };
 
         try {
-            const res = await fetch("http://localhost:8000/api/products/force-create", {
+            const res = await fetch("/api/products/force-create", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

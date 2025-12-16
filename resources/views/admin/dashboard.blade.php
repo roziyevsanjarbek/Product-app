@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
     loadDashboardStats();
 });
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "/api";
 
 async function loadDashboardStats() {
     const token = localStorage.getItem("token");
