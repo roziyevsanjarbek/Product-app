@@ -451,42 +451,57 @@
                 </tbody>
             </table>
         </div>
-
-
-       <!-- Edit Modal HTML -->
-<div id="editUserModal"
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-     background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
-
-    <form id="editUserForm"
-          style="background:#1e293b; padding:20px; border-radius:8px; width:400px;">
-
-        <h3>Foydalanuvchini tahrirlash</h3>
-
-        <input type="hidden" id="editUserId">
-
-        <div class="form-group">
-            <label>Ism Familya</label>
-            <input type="text" id="editUserName" required>
-        </div>
-
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="editUserEmail" required>
-        </div>
-
-        <div class="form-group">
-            <label>Parol (ixtiyoriy)</label>
-            <input type="password" id="editUserPassword">
-        </div>
-
-        <button type="submit" class="btn btn-primary">Saqlash</button>
-        <button type="button" class="btn btn-danger" onclick="closeEditModal()">Bekor qilish</button>
-
-    </form>
-</div>
     </div>
 </div>
+
+
+
+        <!-- Edit Modal HTML -->
+        <div id="editUserModal"
+             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
+
+            <form id="editUserForm"
+                  style="background:#1e293b; padding:20px; border-radius:8px; width:400px; position:relative; color:white;">
+
+                <!-- X tugmasi -->
+                <span id="closeEditUserModalBtn"
+                      style="position:absolute; top:10px; right:15px; font-size:22px; font-weight:bold; cursor:pointer; color:white;">
+            &times;
+        </span>
+
+                <h3>Foydalanuvchini tahrirlash</h3>
+
+                <input type="hidden" id="editUserId">
+
+                <div class="form-group">
+                    <label>Ism Familya</label>
+                    <input type="text" id="editUserName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="editUserEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Roli</label>
+                    <select id="editUserRole" required>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Parol (ixtiyoriy)</label>
+                    <input type="password" id="editUserPassword">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Saqlash</button>
+                <button type="button" class="btn btn-danger" onclick="closeEditModal()">Bekor qilish</button>
+
+            </form>
+        </div>
 
         <!-- User Delete History Modal -->
         <div id="userHistoryModal"
@@ -872,6 +887,23 @@
             clearTimeout(timeout);
         };
     }
+    document.getElementById("closeEditUserModalBtn").addEventListener("click", function () {
+        closeEditModal();
+    });
+    const editModal = document.getElementById('editUserModal');
+    const historyModal = document.getElementById('userHistoryModal');
+
+    editModal.addEventListener('click', function (e){
+        if (e.target === editModal) {
+            closeEditModal();
+        }
+    });
+
+    historyModal.addEventListener('click', function (e){
+        if (e.target === historyModal){
+            closeUserHistoryModal();
+        }
+    });
 
 
         </script>

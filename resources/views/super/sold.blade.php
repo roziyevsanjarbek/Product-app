@@ -496,7 +496,13 @@
      background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
 
         <form id="editSaleForm"
-              style="background:#1e293b; padding:20px; border-radius:8px; width:400px; color:white;">
+              style="background:#1e293b; padding:20px; border-radius:8px; width:400px; color:white; position:relative;">
+
+            <!-- X tugmasi -->
+            <span id="closeEditSaleModalBtn"
+                  style="position:absolute; top:10px; right:15px; font-size:22px; font-weight:bold; cursor:pointer; color:white;">
+            &times;
+        </span>
 
             <h3>Sotuvni tahrirlash</h3>
 
@@ -517,6 +523,7 @@
 
         </form>
     </div>
+
     <div id="toast" class="toast">
         <span id="toastMessage"></span>
         <span class="toast-close">&times;</span>
@@ -888,6 +895,25 @@
             clearTimeout(timeout);
         };
     }
+    document.getElementById("closeEditSaleModalBtn").addEventListener("click", function () {
+        closeEditSaleModal();
+    });
+
+    const editModal = document.getElementById('editSaleModal');
+    const historyModal = document.getElementById('salesModal');
+
+    editModal.addEventListener('click', function (e){
+        if (e.target === editModal) {
+            closeEditSaleModal();
+        }
+    });
+
+    historyModal.addEventListener('click', function (e){
+        if (e.target === historyModal){
+            closeSalesModal();
+        }
+    });
+
 
 
     </script>

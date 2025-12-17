@@ -541,13 +541,16 @@
     </div>
 </div>
 
- <!-- Edit Modal HTML -->
+    <!-- Edit Modal HTML -->
     <div id="editUserModal"
          style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-     background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
+            background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
 
         <form id="editUserForm"
-              style="background:#1e293b; padding:20px; border-radius:8px; width:400px; color:white;">
+              style="background:#1e293b; padding:20px; border-radius:8px; width:400px; color:white; position: relative;">
+
+            <!-- X tugmasi -->
+            <span id="closeEditModalBtn" style="position:absolute; top:10px; right:15px; font-size:22px; font-weight:bold; cursor:pointer; color:white;">&times;</span>
 
             <h3>Mahsulotni tahrirlash</h3>
 
@@ -1125,6 +1128,36 @@
             clearTimeout(timeout);
         };
     }
+
+    document.getElementById("closeEditModalBtn").addEventListener("click", function() {
+        closeEditModal();
+    });
+
+    // Modal overlay bosilganda yopish
+    const editModal = document.getElementById("editUserModal");
+    const historyModal = document.getElementById("tableModal");
+    const productModal = document.getElementById("productModal");
+
+
+    editModal.addEventListener("click", function(e) {
+        // Agar bosilgan joy modalning o'z formi bo'lmasa, modalni yopamiz
+        if (e.target === editModal) {
+            closeEditModal();
+        }
+    });
+
+    historyModal.addEventListener("click", function (e) {
+        if (e.target === historyModal) {
+            closeTableModal();
+        }
+    });
+
+    productModal.addEventListener("click", function (e){
+        if(e.target === productModal){
+            document.getElementById("productModal").style.display = "none";
+        }
+    });
+
 
     </script>
 

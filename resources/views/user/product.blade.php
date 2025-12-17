@@ -787,6 +787,14 @@
         };
     }
 
+    const productModal = document.getElementById('productModal');
+
+    productModal.addEventListener('click', function (e){
+        if ( e.target === productModal){
+            document.getElementById('productModal').style.display = 'none';
+        }
+    })
+
 
 
      </script>
