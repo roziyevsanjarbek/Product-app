@@ -400,12 +400,21 @@
     </div>
 </div>
     <!-- Sales History Modal -->
-    <div id="salesModal" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-        <div class="modal-content" style="background:#0f172a; color:#fff; max-width:900px; margin:50px auto; padding:20px; border-radius:8px; position:relative;">
-            <span class="close-modal" onclick="closeSalesModal()" style="position:absolute; top:10px; right:20px; cursor:pointer; font-size:28px;">&times;</span>
-            <h2>Sotuvlar tarixi</h2>
+    <div id="salesModal" class="modal-overlay"
+         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div class="modal-content"
+             style="background:#0f172a; color:#fff; max-width:900px; margin:50px auto;
+                padding:20px; border-radius:8px; position:relative;">
+        <span class="close-modal"
+              onclick="closeSalesModal()"
+              style="position:absolute; top:10px; right:20px; cursor:pointer; font-size:28px;">
+            &times;
+        </span>
+
+            <h2 style="margin-bottom:20px;">Sotuvlar tarixi</h2>
+
             <div class="table-container" style="overflow-x:auto;">
-                <table style="width:100%; border-collapse: collapse;">
+                <table style="width:100%; border-collapse:collapse;">
                     <thead>
                     <tr>
                         <th>Mahsulot</th>
@@ -419,13 +428,16 @@
                     </thead>
                     <tbody id="salesTableHistory">
                     <tr>
-                        <td colspan="7" style="text-align:center;">Sotuv mavjud emas</td>
+                        <td colspan="7" style="text-align:center; padding:40px;">
+                            Sotuv mavjud emas
+                        </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
 
     <!-- Edit Sale Modal -->
     <div id="editSaleModal"

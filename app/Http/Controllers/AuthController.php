@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserDeleteHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -215,20 +216,45 @@ class AuthController extends Controller
 
 
     // DELETE USER
-    public function deleteUser($id)
+    public function deleteUser($id, Request $request)
     {
-        $user = User::findOrFail($id);
+        $admin = auth()->user(); // token orqali adminni olish
 
-        // Pivot jadvaldagi rollarni o‘chirish
-        $user->roles()->detach();
+        $user = User::query()->findOrFail($id);
 
-        // Userni o‘chirish
+        // Rol va boshqa ma'lumotlarni olish
+        $roles = $user->roles()->get(['roles.name', 'roles.id']);
+
+        // Tarixga saqlash
+        UserDeleteHistory::create([
+            'before' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $roles,
+            ],
+            'admin_id' => $admin->id,
+        ]);
+
+        // Foydalanuvchini o'chirish
         $user->delete();
 
         return response()->json([
-            'message' => 'User deleted successfully'
+            'success' => true,
+            'message' => 'Foydalanuvchi o\'chirildi va tarixga saqlandi'
         ]);
     }
+
+    // O'chirilgan foydalanuvchilar tarixini olish
+    public function history()
+    {
+        $histories = UserDeleteHistory::with('admin')->latest()->get();
+        return response()->json([
+            'success' => true,
+            'data' => $histories
+        ]);
+    }
+
+
 
     public function user(Request $request)
     {
@@ -363,8 +389,5 @@ class AuthController extends Controller
             'data'    => $users
         ], 200);
     }
-
-
-
 
 }

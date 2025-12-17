@@ -328,6 +328,14 @@
             justify-content: center;     /* justify-center */
             align-items: center;         /* align-center (to‘g‘risi: items-center) */
         }
+        .btn-history{
+            padding: 5px;
+            border-radius: 10px;
+            background-color: #4ffb24;   /* bg-amber-400 */
+            display: flex;               /* flex */
+            justify-content: center;     /* justify-center */
+            align-items: center;         /* align-center (to‘g‘risi: items-center) */
+        }
     </style>
 </head>
 <body>
@@ -437,6 +445,46 @@
 
     </form>
 </div>
+    </div>
+</div>
+
+<!-- User Delete History Modal -->
+<div id="userHistoryModal"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div class="modal-content"
+         style="background:#0f172a; color:#fff; max-width:900px; margin:50px auto;
+                padding:20px; border-radius:8px; position:relative; max-height:80vh; overflow-y:auto;">
+        <span class="close-modal"
+              onclick="closeUserHistoryModal()"
+              style="position:absolute; top:10px; right:20px; cursor:pointer; font-size:28px;">
+            &times;
+        </span>
+
+        <h2 style="margin-bottom:20px;">O'chirilgan foydalanuvchilar tarixi</h2>
+
+        <div class="table-container" style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                <tr>
+                    <th>Ism</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>O'chirilgan admin</th>
+                    <th>O'chirilgan vaqti</th>
+                </tr>
+                </thead>
+                <tbody id="userHistoryBody">
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:40px;">
+                        Yuklanmoqda...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 
 <script>
     const API_BASE = "/api";
@@ -556,6 +604,9 @@
                     <button class="btn-delete" data-id="${user.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" color="white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-icon lucide-trash"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     ️</button>
+                    <button class="btn-history history-btn" data-id="">
+                        <svg xmlns="http://www.w3.org/2000/svg" color="white" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                    </button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -680,6 +731,78 @@
         loadUsers();
     }
 });
+    // Event delegation orqali history tugmasi
+    document.getElementById("userTableBody").addEventListener("click", function(e) {
+        const btn = e.target.closest(".history-btn");
+        if (!btn) return;
+
+        // Agar kerak bo‘lsa, ma’lum user IDni ham olishingiz mumkin
+        const userId = btn.dataset.id;
+
+        // Modalni ochish va tarixni yuklash
+        openUserHistoryModal(userId);
+    });
+
+    function openUserHistoryModal(userId = null) {
+        document.getElementById("userHistoryModal").style.display = "flex";
+        loadUserHistory(userId);
+    }
+
+    function closeUserHistoryModal() {
+        document.getElementById("userHistoryModal").style.display = "none";
+    }
+
+    async function loadUserHistory(userId = null) {
+        const token = localStorage.getItem("token");
+        const tbody = document.getElementById("userHistoryBody");
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Yuklanmoqda...</td></tr>`;
+
+        try {
+            const res = await fetch(`${API_BASE}/history${userId ? '?user_id=' + userId : ''}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/json"
+                }
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Xatolik: ${data.message || 'API xatosi'}</td></tr>`;
+                return;
+            }
+
+            const histories = data.data;
+
+            if (histories.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">O'chirilgan foydalanuvchi yo'q</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = "";
+
+            histories.forEach(item => {
+                const roles = item.before.roles ? item.before.roles.map(r => r.name).join(", ") : "-";
+                const adminName = item.admin ? item.admin.name : "-";
+                const deletedAt = new Date(item.created_at).toLocaleString();
+
+                tbody.innerHTML += `
+                <tr>
+                    <td>${item.before.name}</td>
+                    <td>${item.before.email}</td>
+                    <td>${roles}</td>
+                    <td>${adminName}</td>
+                    <td>${deletedAt}</td>
+                </tr>
+            `;
+            });
+
+        } catch (err) {
+            console.error("Tarixni yuklab bo'lmadi:", err);
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Serverga ulanib bo'lmadi</td></tr>`;
+        }
+    }
+
 
 </script>
 

@@ -546,19 +546,26 @@
         </form>
     </div>
 
-    <!-- History Modal -->
-    <div id="tableModal" class="modal-overlay">
-        <div style="background: #0f172a;" class="modal-content">
-            <span class="close-modal" onclick="closeTableModal()">&times;</span>
+    <!-- Product History Modal -->
+    <div id="tableModal" class="modal-overlay"
+         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div class="modal-content"
+             style="background:#0f172a; color:#fff; max-width:900px; margin:50px auto;
+                padding:20px; border-radius:8px; position:relative;">
+        <span class="close-modal"
+              onclick="closeTableModal()"
+              style="position:absolute; top:10px; right:20px; cursor:pointer; font-size:28px;">
+            &times;
+        </span>
 
-            <h2 style="margin-bottom: 20px;">Mahsulotlar roʻyxati</h2>
+            <h2 style="margin-bottom:20px;">Mahsulotlar roʻyxati</h2>
 
-            <div class="table-container">
-                <table>
+            <div class="table-container" style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse;">
                     <thead>
                     <tr>
                         <th>Mahsulot Nomi</th>
-                        <th>Sonı</th>
+                        <th>Soni</th>
                         <th>Narxi (so'm)</th>
                         <th>Jami (so'm)</th>
                         <th>Qoʻshgan User</th>
@@ -567,7 +574,9 @@
                     </thead>
                     <tbody id="productTableHistory">
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px;">Mahsulot qoʻshilmagan</td>
+                        <td colspan="6" style="text-align:center; padding:40px;">
+                            Mahsulot qoʻshilmagan
+                        </td>
                     </tr>
                     </tbody>
                 </table>
