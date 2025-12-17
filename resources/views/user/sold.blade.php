@@ -312,6 +312,59 @@
                 grid-template-columns: 1fr;
             }
         }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50; /* muvaffaqiyat uchun yashil */
+            color: white;
+            padding: 15px 40px 15px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 9999;
+            width: 300px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background-color: #f44336; /* xatolik uchun qizil */
+        }
+
+        .toast-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #fff;
+            width: 100%;
+            transform-origin: left;
+            animation: progressBar 3s linear forwards;
+        }
+
+        @keyframes progressBar {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
     </style>
 </head>
 <body>
@@ -358,7 +411,6 @@
                     <th>Jami (so'm)</th>
                     <th>Sotgan User</th>
                     <th>Sana</th>
-                    <th>Amal</th>
                 </tr>
                 </thead>
                 <tbody id="soldTableBody">
@@ -370,6 +422,11 @@
         </div>
     </div>
 </div>
+     <div id="toast" class="toast">
+         <span id="toastMessage"></span>
+         <span class="toast-close">&times;</span>
+         <div class="toast-progress"></div>
+     </div>
 <script>
     const API_BASE = "/api";
 
@@ -443,7 +500,7 @@ document.getElementById("soldForm").addEventListener("submit", async function(e)
         console.log(data);
 
         if (res.ok) {
-            console.log("Sotilgan mahsulot qo'shildi!");
+            showToast("Sotilgan mahsulot qo'shildi!", "success");
             document.getElementById("soldForm").reset();
 
             // 🔥 MUHIM JOY — jadvalni darhol yangilaymiz
@@ -505,14 +562,7 @@ async function loadSales() {
                 <td>${sale.product.price}</td>
                 <td>${sale.total_price}</td>
                 <td>${sale.creator.name}</td>
-                <td>${new Date(sale.created_at).toLocaleString()}</td>
-                <td>
-                    <button class="btn-update"
-                        data-id="${sale.id}"
-                        data-qty="${sale.quantity}"
-                        data-price="${sale.product.price}">✏️</button>
-                    <button class="btn-delete" data-id="${sale.id}">🗑️</button>
-                </td>`;
+                <td>${new Date(sale.created_at).toLocaleString()}</td>`;
             tbody.appendChild(tr);
         });
 
@@ -521,82 +571,38 @@ async function loadSales() {
     }
 }
 
+    function showToast(message, type = "success") {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toastMessage");
+        const toastProgress = toast.querySelector(".toast-progress");
+        const toastClose = toast.querySelector(".toast-close");
 
-// UPDATE & DELETE buttonlar
-document.getElementById("soldTableBody").addEventListener("click", async function(e) {
-    const btn = e.target;
+        toastMessage.textContent = message;
 
-    // DELETE
-    if (btn.classList.contains("btn-delete")) {
-        if (!confirm("O'chirmoqchimisiz?")) return;
-
-        const id = btn.dataset.id;
-
-        try {
-            const res = await fetch(`${API_BASE}/sales/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Accept": "application/json"
-                }
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                alert("O'chirildi!");
-                loadSales();     // ✔️ refreshsiz yangilanadi
-            } else {
-                alert(data.message || "Xatolik yuz berdi");
-            }
-
-        } catch (err) {
-            console.error(err);
-            alert("Serverga ulanib bo'lmadi");
+        // type ga qarab rang berish
+        toast.className = "toast"; // klassni tozalash
+        if(type === "error") {
+            toast.classList.add("error");
         }
+
+        toast.classList.add("show");
+
+        // progress animatsiyasini qayta ishga tushirish
+        toastProgress.style.animation = "none";
+        void toastProgress.offsetWidth; // reflow trigger
+        toastProgress.style.animation = "progressBar 3s linear forwards";
+
+        // 3 soniyadan keyin avtomatik yopish
+        let timeout = setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+
+        // X tugmasini bosganida toastni yopish
+        toastClose.onclick = () => {
+            toast.classList.remove("show");
+            clearTimeout(timeout);
+        };
     }
-
-    // UPDATE
-    if (btn.classList.contains("btn-update")) {
-        const id = btn.dataset.id;
-        const oldQty = btn.dataset.qty;
-        const oldPrice = btn.dataset.price;
-
-        const newQty = prompt("Sotilgan soni:", oldQty);
-        if (newQty === null) return;
-
-        const newPrice = prompt("Narxi:", oldPrice);
-        if (newPrice === null) return;
-
-        try {
-            const res = await fetch(`${API_BASE}/sales/${id}`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    quantity: newQty,
-                    price: newPrice
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                alert("Yangilandi!");
-                loadSales();     // ✔️ refreshsiz yangilanadi
-            } else {
-                alert(data.message || "Xatolik yuz berdi");
-            }
-
-        } catch (err) {
-            console.error(err);
-            alert("Serverga ulanib bo'lmadi");
-        }
-    }
-});
 
 
 </script>

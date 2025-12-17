@@ -369,6 +369,59 @@
             background-color: #374151; /* Dark gray background */
             color: white;
         }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50; /* muvaffaqiyat uchun yashil */
+            color: white;
+            padding: 15px 40px 15px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 9999;
+            width: 300px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background-color: #f44336; /* xatolik uchun qizil */
+        }
+
+        .toast-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #fff;
+            width: 100%;
+            transform-origin: left;
+            animation: progressBar 3s linear forwards;
+        }
+
+        @keyframes progressBar {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
     </style>
 </head>
 <body>
@@ -450,7 +503,11 @@
              </button>
          </form>
      </div>
-
+     <div id="toast" class="toast">
+         <span id="toastMessage"></span>
+         <span class="toast-close">&times;</span>
+         <div class="toast-progress"></div>
+     </div>
 
      <script>
     const API_BASE = "/api";
@@ -534,7 +591,7 @@
         }
 
         if (res.ok) {
-            console.log("Mahsulot muvaffaqiyatli qo'shildi!");
+            showToast("Mahsulot muvaffaqiyatli qo'shildi!", "success");
 
             // 🔥 FORMNI TOZALAYDI
             document.getElementById("productForm").reset();
@@ -587,6 +644,7 @@
             console.log("UPDATE PRICE RESPONSE:", data);
 
             if (res.ok) {
+                showToast("Mahsulot yangilandi!", "success");
                 document.getElementById("productModal").style.display = "none";
                 document.getElementById("productForm").reset();
                 loadProducts();
@@ -622,6 +680,7 @@
             console.log("FORCE CREATE RESPONSE:", data);
 
             if (res.ok) {
+                showToast("Mahsulot qo'shildi!", "success");
                 document.getElementById("productModal").style.display = "none";
                 document.getElementById("productForm").reset();
                 loadProducts();
@@ -695,87 +754,42 @@
     }
 
 
+    function showToast(message, type = "success") {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toastMessage");
+        const toastProgress = toast.querySelector(".toast-progress");
+        const toastClose = toast.querySelector(".toast-close");
 
+        toastMessage.textContent = message;
 
-
-    // Event delegation: delete & update
-    document.getElementById("productTableBody").addEventListener("click", async function(e) {
-        const btn = e.target;
-
-        // DELETE
-        if (btn.classList.contains("btn-delete")) {
-            if (!confirm("Rostdan o'chirmoqchimisiz?")) return;
-
-            const id = btn.dataset.id;
-            try {
-                const res = await fetch(`${API_BASE}/product/${id}`, {
-                    method: "DELETE",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json"
-                    }
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    alert("Mahsulot o'chirildi!");
-                    loadProducts();
-                } else {
-                    alert(data.message || "Xatolik yuz berdi");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Serverga ulanib bo'lmadi");
-            }
+        // type ga qarab rang berish
+        toast.className = "toast"; // klassni tozalash
+        if(type === "error") {
+            toast.classList.add("error");
         }
 
-        // UPDATE
-        if (btn.classList.contains("btn-edit")) {
-            const id = btn.dataset.id;
-            const name = btn.dataset.name;
-            const qty = btn.dataset.qty;
-            const price = btn.dataset.price;
+        toast.classList.add("show");
 
-            const newName = prompt("Mahsulot nomini kiriting:", name);
-            if (newName === null) return;
+        // progress animatsiyasini qayta ishga tushirish
+        toastProgress.style.animation = "none";
+        void toastProgress.offsetWidth; // reflow trigger
+        toastProgress.style.animation = "progressBar 3s linear forwards";
 
-            const newQty = prompt("Mahsulot sonini kiriting:", qty);
-            if (newQty === null) return;
+        // 3 soniyadan keyin avtomatik yopish
+        let timeout = setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
 
-            const newPrice = prompt("Mahsulot narxini kiriting:", price);
-            if (newPrice === null) return;
-
-            try {
-                const res = await fetch(`${API_BASE}/product/${id}`, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        name: newName,
-                        quantity: newQty,
-                        price: newPrice
-                    })
-                });
-
-                const data = await res.json();
-                if (res.ok) {
-                    alert("Mahsulot yangilandi!");
-                    loadProducts();
-                } else {
-                    alert(data.message || "Xatolik yuz berdi");
-                }
-
-            } catch (err) {
-                console.error(err);
-                alert("Serverga ulanib bo'lmadi");
-            }
-        }
-    });
+        // X tugmasini bosganida toastni yopish
+        toastClose.onclick = () => {
+            toast.classList.remove("show");
+            clearTimeout(timeout);
+        };
+    }
 
 
-</script>
+
+     </script>
 
 </body>
 </html>

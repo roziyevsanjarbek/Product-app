@@ -210,8 +210,6 @@
         .btn-danger {
             background-color: var(--danger);
             color: white;
-            padding: 5px 10px;
-            font-size: 12px;
         }
 
         .btn-danger:hover {
@@ -336,6 +334,59 @@
             justify-content: center;     /* justify-center */
             align-items: center;         /* align-center (to‘g‘risi: items-center) */
         }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50; /* muvaffaqiyat uchun yashil */
+            color: white;
+            padding: 15px 40px 15px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 9999;
+            width: 300px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background-color: #f44336; /* xatolik uchun qizil */
+        }
+
+        .toast-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #fff;
+            width: 100%;
+            transform-origin: left;
+            animation: progressBar 3s linear forwards;
+        }
+
+        @keyframes progressBar {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
     </style>
 </head>
 <body>
@@ -484,7 +535,11 @@
         </div>
     </div>
 </div>
-
+<div id="toast" class="toast">
+    <span id="toastMessage"></span>
+    <span class="toast-close">&times;</span>
+    <div class="toast-progress"></div>
+</div>
 
 <script>
     const API_BASE = "/api";
@@ -526,7 +581,7 @@
             console.log(data);
 
             if (res.ok) {
-                alert("Foydalanuvchi muvaffaqiyatli qo‘shildi!");
+                showToast("Foydalanuvchi muvaffaqiyatli qo‘shildi!", "success");
                 document.getElementById("userForm").reset();
                 loadUsers(); // jadvalni yangilash
             } else {
@@ -645,7 +700,7 @@
             const data = await res.json();
 
             if (res.ok) {
-                alert("Foydalanuvchi o'chirildi!");
+                showToast("Foydalanuvchi o'chirildi!", "success");
                 loadUsers(); // jadvalni yangilash
             } else {
                 alert(data.message || "Xatolik yuz berdi");
@@ -713,8 +768,8 @@
 
     const data = await res.json();
 
-    if(res.ok && data.success){
-        alert("Foydalanuvchi yangilandi!");
+    if(res.ok){
+        showToast("Foydalanuvchi yangilandi!", "success");
 
         // 🔥 Modalni yopish
         closeEditModal();
@@ -802,6 +857,40 @@
             tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Serverga ulanib bo'lmadi</td></tr>`;
         }
     }
+
+    function showToast(message, type = "success") {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toastMessage");
+        const toastProgress = toast.querySelector(".toast-progress");
+        const toastClose = toast.querySelector(".toast-close");
+
+        toastMessage.textContent = message;
+
+        // type ga qarab rang berish
+        toast.className = "toast"; // klassni tozalash
+        if(type === "error") {
+            toast.classList.add("error");
+        }
+
+        toast.classList.add("show");
+
+        // progress animatsiyasini qayta ishga tushirish
+        toastProgress.style.animation = "none";
+        void toastProgress.offsetWidth; // reflow trigger
+        toastProgress.style.animation = "progressBar 3s linear forwards";
+
+        // 3 soniyadan keyin avtomatik yopish
+        let timeout = setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+
+        // X tugmasini bosganida toastni yopish
+        toastClose.onclick = () => {
+            toast.classList.remove("show");
+            clearTimeout(timeout);
+        };
+    }
+
 
 
 </script>
