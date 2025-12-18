@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/history/{user_id}', [ProductController::class, 'productHistory']);
+    Route::get('/product/history/{userId}/{productId}', [ProductController::class, 'productHistoryById']);
     Route::get('/product/price', [ProductController::class, 'getPriceByName']);
     Route::get('/product', [ProductController::class, 'show']);
     Route::post('/product', [ProductController::class, 'store']);
@@ -36,11 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/sales', [SalesController::class, 'index']);
     Route::get('/sale', [SalesController::class, 'show']);
+    Route::get('/sale/history/{userId}/{saleId}', [SalesController::class, 'showHistory']);
     Route::post('/sales', [SalesController::class, 'store']);
     Route::post('/sales/{id}', [SalesController::class, 'update']);
     Route::delete('/sales/{id}', [SalesController::class, 'destroy']);
     Route::post('/sales/restore/{id}', [SalesController::class, 'restore']);
     Route::get('/sales/history', [SalesController::class, 'history']);
+    Route::get('/sales/history/{userId}/{saleId}', [SalesController::class, 'getSaleIdByUserId']);
 
 
 });

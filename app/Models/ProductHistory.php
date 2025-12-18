@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;         
+use Illuminate\Database\Eloquent\Model;
 
 class ProductHistory extends Model
 {
-    protected $fillable = ['product_id', 'user_id', 'quantity'];
+    protected $fillable = ['product_id', 'user_id', 'quantity',
+        'old_quantity', 'price', 'old_price', 'old_total_price', 'total_price',
+        'action',
+        'edited_by'
+    ];
 
     public function product()
     {

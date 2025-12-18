@@ -57,5 +57,8 @@
        href="/super/users">
         👥 Foydalanuvchilar
     </a>
+    <a class="nav-item {{ request()->is('super/history*') ? 'active' : '' }}" href="/super/history">
+        📜 Tarix
+    </a>
 
 </div>

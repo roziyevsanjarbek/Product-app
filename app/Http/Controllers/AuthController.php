@@ -31,7 +31,7 @@ class AuthController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'role'     => 'nullable|string|exists:roles,name', // optional
+            'role'     => '|string', // optional
         ]);
 
         // 🔹 Role logikasi
@@ -55,7 +55,6 @@ class AuthController extends Controller
         // 🔹 Role olish yoki yaratish
         $role = Role::firstOrCreate(
             ['name' => $requestedRole],
-            ['description' => ucfirst($requestedRole) . ' role']
         );
 
         // 🔹 Pivot jadvalga biriktirish
@@ -95,7 +94,6 @@ class AuthController extends Controller
         // 2️⃣ Admin tomonidan yaratilyapti, shuning uchun rol doimo 'user'
         $role = Role::firstOrCreate(
             ['name' => 'user'],
-            ['description' => 'User role']
         );
 
         // 3️⃣ Pivot jadvalga biriktirish
@@ -195,7 +193,6 @@ class AuthController extends Controller
         if ($request->has('role')) {
             $role = Role::firstOrCreate(
                 ['name' => $request->role],
-                ['description' => ucfirst($request->role) . ' role']
             );
             $user->roles()->sync([$role->id]); // eski rollarni o‘chirib yangi rol biriktiradi
         }

@@ -57,5 +57,8 @@
        href="/admin/users">
         👥 Foydalanuvchilar
     </a>
+    <a class="nav-item {{ request()->is('admin/history*') ? 'active' : '' }}" href="/admin/history">
+        📜 Tarix
+    </a>
 
 </div>

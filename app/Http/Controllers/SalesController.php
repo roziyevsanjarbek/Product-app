@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SaleHistory;
 use App\Models\Sales;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -58,26 +59,28 @@ class SalesController extends Controller
     }
 
 
-    // Yangi sotuv qo'shish
     public function store(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-            'user_id' => 'nullable|integer|exists:users,id', // superAdmin/admin boshqa user nomidan sotish uchun
+            'quantity'   => 'required|integer|min:1',
+            'user_id'    => 'nullable|integer|exists:users,id',
         ]);
 
         $currentUser = auth()->user();
-        $creatorId = $currentUser->id; // default: sotuvchi = login qilgan user
+        $creatorId = $currentUser->id;
 
-        // ❗ superAdmin boshqa user nomidan sotishi mumkin
+        // ✅ superAdmin boshqa user nomidan sotishi mumkin
         if ($currentUser->hasRole('superAdmin') && $request->filled('user_id')) {
             $creatorId = $request->user_id;
         }
-        // ❗ admin faqat o'z yoki o'z qo'shgan userlar nomidan sotishi mumkin
+        // ✅ admin faqat o'z yoki o'z qo'shgan userlari
         elseif ($currentUser->hasRole('admin') && $request->filled('user_id')) {
-            $allowedUserIds = User::where('created_by', $currentUser->id)->pluck('id')->toArray();
-            $allowedUserIds[] = $currentUser->id; // admin o'zini ham qo'shadi
+            $allowedUserIds = User::where('created_by', $currentUser->id)
+                ->pluck('id')
+                ->toArray();
+
+            $allowedUserIds[] = $currentUser->id;
 
             if (!in_array($request->user_id, $allowedUserIds)) {
                 return response()->json([
@@ -87,53 +90,49 @@ class SalesController extends Controller
 
             $creatorId = $request->user_id;
         }
-        // oddiy user -> $creatorId = auth()->id()
 
-        $product = Product::find($request->product_id);
+        $product = Product::findOrFail($request->product_id);
 
-        // Tekshiramiz: yetarli product mavjudmi
         if ($request->quantity > $product->quantity) {
             return response()->json([
                 'message' => 'Not enough product in stock'
             ], 400);
         }
 
-        // Total price hisoblash
-        $totalPrice = $request->quantity * $product->price;
+        DB::transaction(function () use ($request, $product, $creatorId) {
 
-        // Sale yaratish
-        $sale = Sales::create([
-            'product_id' => $product->id,
-            'quantity' => $request->quantity,
-            'total_price' => $totalPrice,
-            'created_by' => $creatorId,
-        ]);
+            // 🔥 SALE SAQLANADI
+            Sales::create([
+                'product_id'  => $request->product_id,
+                'quantity'    => $request->quantity,
+                'total_price' => $request->quantity * $product->price,
+                'created_by'  => $creatorId, // ⭐ MUHIM JOY
+            ]);
 
-        // Product miqdorini kamaytirish
-        $product->quantity -= $request->quantity;
-        $product->save();
+            // 🔥 PRODUCT STOCK KAMAYADI
+            $product->decrement('quantity', $request->quantity);
+        });
 
         return response()->json([
-            'message' => 'Sale added successfully',
-            'data' => $sale->load('product', 'creator')
+            'message' => 'Sale added successfully'
         ], 201);
     }
 
 
     public function show()
-{
-    $userId = auth()->id(); // login qilgan user ID
+    {
+        $userId = auth()->id(); // login qilgan user ID
 
-    $sales = Sales::with(['product', 'creator'])
-        ->where('created_by', $userId) // faqat shu userga tegishli
-        ->orderBy('created_at', 'desc')
-        ->get();
+        $sales = Sales::with(['product', 'creator'])
+            ->where('created_by', $userId) // faqat shu userga tegishli
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    return response()->json([
-        'message' => 'Sales fetched successfully',
-        'data' => $sales
-    ]);
-}
+        return response()->json([
+            'message' => 'Sales fetched successfully',
+            'data' => $sales
+        ]);
+    }
 
 
     public function update(Request $request, $id)
@@ -145,10 +144,31 @@ class SalesController extends Controller
         }
 
         $request->validate([
+            'user_id' => 'nullable|integer|exists:users,id',
             'quantity' => 'required|integer|min:1',
+            'price' => 'required|integer|min:1'
+        ]);
+        $product = $sale->product;
+        // Add SaleHistory
+        $Sale = SaleHistory::query()->create([
+            'sale_id' => $sale->id,
+            'user_id' => $request->user_id,
+            'product_id' => $product->id,
+            'action' => 'update',
+            'edited_by' => auth()->id(),
+            'old_quantity' => $sale->quantity,
+            'quantity' => $request->quantity,
+            'old_price' => $product->price,
+            'price' => $request->price,
+            'old_total_price' => $sale->price * $sale->quantity,
+            'total_price' => $sale->price * $request->quantity,
+
         ]);
 
-        $product = $sale->product;
+        response()->json([
+            'message' => 'SaleHistory created successfully',
+            'data' => $Sale
+        ]);
 
         // Avvalgi sale miqdorini qaytaramiz productga
         $product->quantity += $sale->quantity;
@@ -171,31 +191,38 @@ class SalesController extends Controller
 
         return response()->json([
             'message' => 'Sale updated successfully',
-            'data' => $sale->load('product', 'creator')
+            'data' => $sale->load('product', 'creator'),
+            'Update SaleHistory:' => $Sale
         ]);
     }
 
     public function destroy($id)
     {
-        $sale = Sales::withTrashed()->find($id);
+        $sale = Sales::query()->find($id);
 
         if (!$sale || $sale->trashed()) {
             return response()->json(['message' => 'Sale not found or already deleted'], 404);
         }
 
-        DB::transaction(function () use ($sale) {
+        $history = SaleHistory::query()->create([
+            'sale_id' => $sale->id,
+            'user_id' => auth()->id(),
+            'action' => 'delete',
+            'edited_by' => auth()->id(),
+            'product_id' => $sale->product->id,
+            'old_quantity' => 0,
+            'quantity' => $sale->quantity,
+            'old_price' => 0,
+            'price' => $sale->total_price / $sale->quantity,
+            'old_total_price' => 0,
+            'total_price' => $sale->total_price
+        ]);
 
-            // Product quantity qaytarish
-            $sale->product->increment('quantity', $sale->quantity);
 
-            // Soft delete + deleted_by
-            $sale->deleted_by = Auth::id();
-            $sale->save();
-            $sale->delete();
-        });
 
         return response()->json([
-            'message' => 'Sale deleted successfully'
+            'message' => 'Sale deleted successfully',
+            'deleted SaleHistory:' => $history
         ]);
     }
 
@@ -237,8 +264,59 @@ class SalesController extends Controller
         return response()->json($sales);
     }
 
+    public function showHistory(string $userId, string $saleId)
+    {
+        $sale = SaleHistory::query()->with('user')
+            ->where('user_id', $userId)
+            ->where('sale_id', $saleId)
+            ->first();
 
+        return response()->json([
+            'message' => 'SaleHistory fetched successfully',
+            'data' => $sale
+        ]);
 
+    }
+
+    public function getSaleIdByUserId(Request $request, $userId, $saleId)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ]);
+        }
+        //Super Admin
+        if ($user->hasRole('superAdmin')) {
+            $history = SaleHistory::query()
+                ->with('user')
+                ->where('user_id', $userId)
+                ->where('sale_id', $saleId)
+                ->get();
+            return response()->json([
+                'success' => true,
+                'data' => $history
+
+            ]);
+        }elseif ($user->hasRole('admin')) {
+            $history = SaleHistory::query()
+                ->with('user')
+                ->where('user_id', $userId)
+                ->where('sale_id', $saleId)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $history
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'User not authenticated'
+        ]);
+
+    }
 
 
 }

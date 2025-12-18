@@ -238,12 +238,6 @@ class ProductController extends Controller
                 'created_by' => $userId,
             ]);
 
-            ProductHistory::create([
-                'product_id' => $product->id,
-                'user_id' => $userId,
-                'quantity' => $request->quantity,
-            ]);
-
             return response()->json([
                 'message' => 'Product created',
                 'data' => $product
@@ -268,11 +262,6 @@ class ProductController extends Controller
         $product->quantity += $request->quantity;
         $product->save();
 
-        ProductHistory::create([
-            'product_id' => $product->id,
-            'user_id' => $userId,
-            'quantity' => $request->quantity,
-        ]);
 
         return response()->json([
             'message' => 'Quantity updated',
@@ -284,6 +273,7 @@ class ProductController extends Controller
     public function updatePriceAndAdd(Request $request)
     {
         $request->validate([
+            'user_id' => 'required',
             'product_id' => 'required|integer|exists:products,id',
             'quantity' => 'required|integer|min:1',
             'new_price' => 'required|integer|min:1',
@@ -298,9 +288,16 @@ class ProductController extends Controller
 
         // Historyga yozamiz
         ProductHistory::create([
-            'product_id' => $product->id,
-            'user_id' => auth()->id(),
+           'product_id' => $product->id,
+            'user_id' => $request->user_id,
+            'edited_by' => auth()->id(),
+            'action' => 'add quantity',
+            'old_quantity' => $product->quantity,
             'quantity' => $request->quantity,
+            'old_price' => $product->price,
+            'price' => $request->new_price,
+            'old_total_price' => $product->price * $product->quantity,
+            'total_price' => $request->new_price * $request->quantity,
         ]);
 
         return response()->json([
@@ -364,10 +361,33 @@ class ProductController extends Controller
         }
         // Validatsiya
         $request->validate([
+            'id' => 'nullable|integer|exists:users,id',
+            'userId' => 'nullable|integer|exists:users,id',
             'name' => 'sometimes|required|string|max:255',
             'quantity' => 'sometimes|required|integer|min:0',
             'price' => 'sometimes|required|integer|min:1',
         ]);
+
+
+        // Add ProductHistory
+        $Product = ProductHistory::query()->create([
+            'product_id' => $product->id,
+            'user_id' => $request->input('userId'),
+            'edited_by' => auth()->id(),
+            'action' => 'update',
+            'old_quantity' => $product->quantity,
+            'quantity' => $request->input('quantity'),
+            'old_price' => $product->price,
+            'price' => $request->input('price'),
+            'old_total_price' => $product->price * $product->quantity,
+            'total_price' => $request->input('price') * $request->input('quantity'),
+        ]);
+
+        response()->json([
+            'message' => 'ProductHistory created successfully',
+            'data' => $Product
+        ]);
+
 
         // Faqat null bo‘lmagan maydonlarni olamiz
         $product->name = $request->input('name');
@@ -393,6 +413,24 @@ class ProductController extends Controller
             ], 404);
         }
 
+        $ProductHistory = ProductHistory::query()->create([
+           'product_id' => $product->id,
+           'user_id' => auth()->id(),
+
+           'action' => 'delete',
+           'old_quantity' => $product->quantity,
+           'quantity' => 0,
+           'old_price' => $product->price,
+           'price' => 0,
+           'old_total_price' => $product->price * $product->quantity,
+           'total_price' => 0,
+        ]);
+
+        response()->json([
+            'message' => 'ProductHistory created successfully',
+            'data' => $ProductHistory
+        ]);
+
         // 2️⃣ Productni o‘chiramiz
         $product->delete();
 
@@ -401,6 +439,59 @@ class ProductController extends Controller
         ]);
     }
 
+    public function productHistoryById(Request $request, $userId, $productId)
+    {
+        $currentUser = auth()->user();
 
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Foydalanuvchi tizimga kirmagan'
+            ], 401);
+        }
+
+        // ================= SUPER ADMIN =================
+        if ($currentUser->hasRole('superAdmin')) {
+
+            $histories = ProductHistory::with(['user', 'product'])
+                ->where('user_id', $userId)
+                ->where('product_id', $productId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $histories
+            ]);
+        }
+
+        // ================= ADMIN =================
+        if ($currentUser->hasRole('admin')) {
+
+            $createdUsers = User::where('created_by', $currentUser->id)
+                ->pluck('id')
+                ->toArray();
+
+            // admin faqat o‘zi yoki yaratgan userni ko‘ra oladi
+            if ($userId != $currentUser->id && !in_array($userId, $createdUsers)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Siz bu foydalanuvchining tarixini ko‘ra olmaysiz'
+                ], 403);
+            }
+
+            $histories = ProductHistory::with(['user', 'product'])
+                ->where('user_id', $userId)
+                ->where('product_id', $productId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $histories
+            ]);
+        }
+
+    }
 
 }

@@ -10,13 +10,20 @@ class CreateProductHistoriesTable extends Migration
     {
         Schema::create('product_histories', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('user_id');
-            $table->integer('quantity'); // qancha qo‘shdi
+            $table->unsignedBigInteger('product_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreignId('edited_by')->nullable()->constrained('users')->nullOnDelete();;
+            $table->string('action');
+            $table->string('old_quantity');
+            $table->integer('quantity');
+            $table->string('old_price');
+            $table->string('price');
+            $table->string('old_total_price');
+            $table->string('total_price');
             $table->timestamps();
 
-            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('product_id')->nullOnDelete()->references('id')->on('products');
+            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
         });
     }
 

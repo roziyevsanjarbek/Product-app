@@ -30,7 +30,12 @@ class HomeController extends Controller
         return view('super.users');
     }
 
-    
+    public function superHistory()
+    {
+        return view('super.history');
+    }
+
+
       public function superLogout(){
         return redirect('/');
     }
@@ -59,12 +64,16 @@ class HomeController extends Controller
     {
         return view('admin.users');
     }
-    
+
     public function profile(){
         return view('admin.profile');
     }
 
-    
+    public function history(){
+        return view('admin.history');
+    }
+
+
       public function logout(){
         return redirect('/');
     }
@@ -99,10 +108,10 @@ class HomeController extends Controller
         return view('login');
     }
 
-  
 
-  
 
-  
+
+
+
 
 }

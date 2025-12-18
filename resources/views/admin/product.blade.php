@@ -573,6 +573,11 @@
         <h3>Mahsulotni tahrirlash</h3>
 
         <input type="hidden" id="editUserId">
+        <div class="form-group" hidden="hidden">
+            <label>Tahrirlagan User</label>
+            <input type="number" id="editUser" required>
+        </div>
+
 
         <div class="form-group">
             <label>Mahsulot Nomi</label>
@@ -617,7 +622,6 @@
         </button>
     </form>
 </div>
-
 <!-- Product History Modal -->
 <div id="tableModal" class="modal-overlay"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000;">
@@ -637,9 +641,13 @@
                 <thead>
                 <tr>
                     <th>Mahsulot Nomi</th>
-                    <th>Soni</th>
-                    <th>Narxi (so'm)</th>
-                    <th>Jami (so'm)</th>
+                    <th>Hatakat turi</th>
+                    <th>Yangilanishdan avvalgi Soni</th>
+                    <th>Hozirgi Soni</th>
+                    <th>Yangilanishdan avvalgi Narxi</th>
+                    <th>Hozirgi (so'm)</th>
+                    <th>Yangilanishdan avvalgi Jami (so'm)</th>
+                    <th>Hozirgi Jami (so'm)</th>
                     <th>Qoʻshgan User</th>
                     <th>Sana</th>
                 </tr>
@@ -844,13 +852,13 @@
                 <td>${product.creator ? product.creator.name : 'Noma\'lum'}</td>
                 <td>${new Date(product.created_at).toLocaleString()}</td>
                 <td style="display: flex ; align-items: center; margin-left: 10px; gap: 5px">
-                    <button class="btn-edit" data-id="${product.id}" data-name="${product.name}" data-qty="${product.quantity}" data-price="${product.price}">
+                    <button class="btn-edit" data-id="${product.id}" data-name="${product.name}" data-qty="${product.quantity}" data-price="${product.price}" data-user-id="${product.creator.id}">
                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" color="white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
                     </button>
                     <button class="btn-delete bg-red-500" data-id="${product.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" color="white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-icon lucide-trash"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
-                    <button class="btn-history history-btn" data-id="${product.creator.id}">
+                    <button class="btn-history history-btn" data-id="${product.creator.id}" data-product-id="${product.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" color="white" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
                     </button>
                 </td>
@@ -864,9 +872,9 @@
         }
     }
 
-    async function loadProductHistory(userId) {
+    async function loadProductHistory(userId, productId) {
         try {
-            const res = await fetch(`/api/products/history/${userId}`, {
+            const res = await fetch(`/api/product/history/${userId}/${productId}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -886,33 +894,50 @@
         const tbody = document.getElementById("productTableHistory");
         tbody.innerHTML = "";
 
-        // backend data: [ ... ] yoki { data: [ ... ] }
-        const items = Array.isArray(response) ? response : response.data;
+        let items = [];
 
-        if (!items || items.length === 0) {
+        // 🔥 ENG MUHIM JOY
+        if (Array.isArray(response.product)) {
+            items = response.product; // ← TO‘G‘RI
+        } else if (response.product) {
+            items = [response.product]; // bitta object bo‘lsa
+        } else if (Array.isArray(response.data)) {
+            items = response.data;
+        }
+
+        if (!items.length) {
             tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 40px;">Tarix topilmadi</td>
+                <td colspan="10" style="text-align:center; padding:40px;">
+                    Tarix topilmadi
+                </td>
             </tr>
         `;
             return;
         }
 
         items.forEach(item => {
-            console.log(item);
             tbody.innerHTML += `
             <tr>
                 <td>${item.product?.name ?? "-"}</td>
-                <td>${item.quantity}</td>
-                <td>${item.product?.price}</td>
-                <td>${item.quantity * (item.product?.price ?? 0)}</td>
+                <td>${item.action ?? "-"}</td>
+
+                <td>${item.old_quantity ?? "-"}</td>
+                <td>${item.quantity ?? "-"}</td>
+
+                <td>${Number(item.old_price ?? 0).toLocaleString()}</td>
+                <td>${Number(item.price ?? 0).toLocaleString()}</td>
+
+                <td>${Number(item.old_total_price ?? 0).toLocaleString()}</td>
+                <td>${Number(item.total_price ?? 0).toLocaleString()}</td>
+
                 <td>${item.user?.name ?? "-"}</td>
                 <td>${new Date(item.created_at).toLocaleString()}</td>
-
             </tr>
         `;
         });
     }
+
 
 
     function openTableModal() {
@@ -929,9 +954,10 @@
 
         if (btn) {
             const userId = btn.getAttribute("data-id");
+            const productId = btn.getAttribute("data-product-id");
 
             openTableModal();          // modalni ochamiz
-            await loadProductHistory(userId); // ma'lumotlarni yuklaymiz
+            await loadProductHistory(userId, productId); // ma'lumotlarni yuklaymiz
         }
     });
 
@@ -967,9 +993,11 @@
             }
 
             // UPDATE
+        const userId = btn.getAttribute("data-user-id")
         if (btn && btn.classList.contains("btn-edit")) {
             const product = {
                 id: btn.dataset.id,
+                user_id: userId,
                 name: btn.dataset.name,
                 quantity: btn.dataset.qty,
                 price: btn.dataset.price
@@ -983,6 +1011,8 @@
         document.getElementById("editUserName").value = product.name;
         document.getElementById("editUserQty").value = product.quantity;
         document.getElementById("editUserPrice").value = product.price;
+        document.getElementById("editUser").value = product.user_id;
+        console.log(product.user_id)
 
         document.getElementById("editUserModal").style.display = "flex";
     }
@@ -1000,6 +1030,7 @@
         const name = document.getElementById("editUserName").value;
         const quantity = document.getElementById("editUserQty").value;
         const price = document.getElementById("editUserPrice").value;
+        const userId = document.getElementById("editUser").value;
 
         try {
             const res = await fetch(`${API_BASE}/product/${id}`, {
@@ -1009,7 +1040,7 @@
                     "Accept": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ name, quantity, price })
+                body: JSON.stringify({userId, name, quantity, price })
             });
 
             const data = await res.json();
@@ -1038,11 +1069,13 @@
         const quantity = document.getElementById("productQty").value;
         const new_price = document.getElementById("productPrice").value;
         let conflictProductId = document.getElementById('priceOption').value;
+        const userId = document.getElementById("productUser");
 
         const bodyData = {
             product_id: conflictProductId,
             quantity: quantity,
             new_price: new_price,
+            user_id: userId
 
         };
 

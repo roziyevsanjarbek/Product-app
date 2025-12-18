@@ -22,6 +22,7 @@ Route::get('/super/products', [HomeController::class, 'superProducts'])->name('s
 Route::get('/super/sold', [HomeController::class, 'superSold'])->name('superSold');
 Route::get('/super/users', [HomeController::class, 'superUsers'])->name('superUsers');
 Route::get('/super/profile', [HomeController::class, 'superProfile'])->name('superProfile');
+Route::get('/super/history', [HomeController::class, 'superHistory'])->name('superHistory');
 
 
 Route::get('/admin/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
@@ -29,6 +30,7 @@ Route::get('/admin/products', [HomeController::class, 'products'])->name('produc
 Route::get('/admin/sold', [HomeController::class, 'sold'])->name('sold');
 Route::get('/admin/users', [HomeController::class, 'users'])->name('users');
 Route::get('/admin/profile', [HomeController::class, 'profile']);
+Route::get('/admin/history', [HomeController::class, 'history'])->name('history');
 
 
 Route::get('/user/dashboard', [HomeController::class, 'userDashboard'])->name('userDashboard');
