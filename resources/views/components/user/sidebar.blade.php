@@ -1,10 +1,12 @@
 <style>
     .sidebar {
+        position: fixed;      /* doimiy chap tomonda turadi */
         width: 240px;
-        background: #1a1a1a;
+        background: #1f2937;  /* navbar bilan bir xil rang */
         color: #fff;
         height: 100vh;
         padding-top: 20px;
+        z-index: 1000;        /* navbar ustida chiqmasligi uchun */
     }
 
     .nav-item {
@@ -28,6 +30,7 @@
         font-weight: bold;
     }
 
+
 </style>
 
 <div class="sidebar">
@@ -49,6 +52,6 @@
        href="/user/sold">
         💰 Sotilganlar
     </a>
-  
+
 
 </div>

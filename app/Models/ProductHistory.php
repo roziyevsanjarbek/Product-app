@@ -9,7 +9,9 @@ class ProductHistory extends Model
     protected $fillable = ['product_id', 'user_id', 'quantity',
         'old_quantity', 'price', 'old_price', 'old_total_price', 'total_price',
         'action',
-        'edited_by'
+        'edited_by',
+        'old_name',
+        'new_name'
     ];
 
     public function product()

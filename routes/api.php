@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SalesController;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users', [AuthController::class, 'index']);
-    Route::get('/users/get', [AuthController::class, 'getUsers']);
+    Route::get('/user/get', [AuthController::class, 'getUsers']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
     Route::post('/profile', [AuthController::class, 'updateProfile'])->name('update');
@@ -43,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/history/{userId}', [AuthController::class, 'history']);
     Route::get('/product/history/{userId}/{productId}', [ProductController::class, 'productHistoryById']);
     Route::get('/sales/history/{userId}/{saleId}', [SalesController::class, 'getSaleIdByUserId']);
+
+    Route::get('/all/product-history/', [HistoryController::class, 'allHistoryByProduct']);
+    Route::get('/all/sale-history/', [HistoryController::class, 'allHistoryBySale']);
+    Route::get('/all/user-history', [HistoryController::class, 'allHistoryByUser']);
 
 
 

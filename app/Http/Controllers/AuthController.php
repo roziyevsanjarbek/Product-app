@@ -147,13 +147,6 @@ class AuthController extends Controller
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
             'password' => 'sometimes|string|min:6|confirmed', // agar password update bo‘lsa
         ]);
-
-
-        // Agar password bor bo‘lsa, hash qilish
-        if(isset($validated['password'])) {
-            $validated['password'] = bcrypt($validated['password']);
-        }
-
         $history = UserHistory::query()->create([
             'user_id' => $user->id,
             'edited_by' => auth()->id(),
@@ -162,7 +155,15 @@ class AuthController extends Controller
             'new_name' => $validated['name'],
             'old_email' => $user->email,
             'new_email' => $validated['email'],
+            'old_role' => $user->roles->pluck('name'),
+            'new_role' => $user->roles->pluck('name'),
         ]);
+
+
+        // Agar password bor bo‘lsa, hash qilish
+        if(isset($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        }
 
         // User update
         $user->update($validated);
@@ -418,39 +419,17 @@ class AuthController extends Controller
 
     public function getUsers()
     {
-        $currentUser = auth()->user();
-
-        if (!$currentUser) {
+        $user = auth()->user();
+        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Foydalanuvchi tizimga kirmagan.'
+                'message' => 'User not authenticated'
             ], 401);
-        }
-
-        if ($currentUser->hasRole('superAdmin')) {
-            // superAdmin hamma foydalanuvchilarni, o'zini ham ko'radi
-            $users = User::with('roles')->get();
-
-        } elseif ($currentUser->hasRole('admin')) {
-            // admin faqat o'z qo'shgan userlarini, o'zini ham ko'radi
-            $users = User::with('roles')
-                ->where(function ($q) use ($currentUser) {
-                    $q->where('created_by', $currentUser->id)
-                        ->orWhere('id', $currentUser->id); // o‘zini qo‘shamiz
-                })
-                ->get();
-
-        } else {
-            // oddiy user faqat o'zini ko'ra oladi
-            $users = User::with('roles')
-                ->where('id', $currentUser->id)
-                ->get();
         }
 
         return response()->json([
             'success' => true,
-            'data'    => $users
-        ], 200);
+            'data' => $user
+        ]);
     }
-
 }

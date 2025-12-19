@@ -195,41 +195,17 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|integer|min:1',
-            'user_id' => 'nullable|integer|exists:users,id', // superAdmin boshqa user uchun yuborishi mumkin
         ]);
 
-        $currentUser = auth()->user();
-        $userId = $currentUser->id;
-
-        // ❗ Agar superAdmin bo'lsa, user_id yuborishi mumkin
-        if ($currentUser->hasRole('superAdmin') && $request->filled('user_id')) {
-            $userId = $request->user_id;
-        }
-
-        // ❗ Agar admin bo'lsa, user_id ni faqat o‘z qo‘shgan userlar orasidan tanlashi mumkin
-        elseif ($currentUser->hasRole('admin') && $request->filled('user_id')) {
-            $allowedUserIds = User::where('created_by', $currentUser->id)->pluck('id')->toArray();
-            $allowedUserIds[] = $currentUser->id; // admin o‘zini ham qo‘shadi
-
-            if (!in_array($request->user_id, $allowedUserIds)) {
-                return response()->json([
-                    'message' => 'Siz faqat o‘z nomingiz yoki o‘z qo‘shgan userlar nomidan product qo‘sha olasiz.'
-                ], 403);
-            }
-
-            $userId = $request->user_id;
-        }
-
-        // oddiy user -> userId = auth()->id(), request->user_id e’tiborga olinmaydi
-
+        $userId = auth()->id();
         $name = strtolower(trim($request->name));
 
-        // ❗ Shu user o‘zi yaratgan productni qidiramiz
+        // Shu user o'zi yaratgan productni qidiramiz
         $product = Product::whereRaw('LOWER(name) = ?', [$name])
             ->where('created_by', $userId)
             ->first();
 
-        // ❗ Agar product yo‘q — yaratamiz
+        // Agar product yo'q — yaratamiz
         if (!$product) {
             $product = Product::create([
                 'name' => $request->name,
@@ -244,7 +220,7 @@ class ProductController extends Controller
             ], 201);
         }
 
-        // ❗ Product topilgan — narx mosmi?
+        // Product topilgan — narx mosmi?
         if ($product->price != $request->price) {
             return response()->json([
                 'message' => 'Price mismatch',
@@ -258,16 +234,16 @@ class ProductController extends Controller
             ], 409);
         }
 
-        // ❗ Narx mos bo‘lsa — quantity qo‘shamiz
+        // Narx mos bo‘lsa — quantity qo‘shamiz
         $product->quantity += $request->quantity;
         $product->save();
-
 
         return response()->json([
             'message' => 'Quantity updated',
             'data' => $product
         ], 200);
     }
+
 
 
     public function updatePriceAndAdd(Request $request)
@@ -292,6 +268,8 @@ class ProductController extends Controller
             'user_id' => $request->user_id,
             'edited_by' => auth()->id(),
             'action' => 'add quantity',
+            'old_name' => $product->name,
+            'new_name' => $product->name,
             'old_quantity' => $product->quantity,
             'quantity' => $request->quantity,
             'old_price' => $product->price,
@@ -325,7 +303,16 @@ class ProductController extends Controller
         ProductHistory::create([
             'product_id' => $product->id,
             'user_id' => auth()->id(),
-            'quantity' => $request->quantity,
+            'edited_by' => auth()->id(),
+            'action' => 'force create',
+            'old_name' => 'force create',
+            'new_name' => $product->name,
+            'old_quantity' => 0,
+            'quantity' => $product->quantity,
+            'old_price' => 0,
+            'price' => $product->price,
+            'old_total_price' => 0,
+            'total_price' => $product->price * $product->quantity,
         ]);
 
         return response()->json([
@@ -361,8 +348,8 @@ class ProductController extends Controller
         }
         // Validatsiya
         $request->validate([
-            'id' => 'nullable|integer|exists:users,id',
-            'userId' => 'nullable|integer|exists:users,id',
+            'id' => 'nullable|integer|',
+            'user_id' => 'nullable|integer|exists:users,id',
             'name' => 'sometimes|required|string|max:255',
             'quantity' => 'sometimes|required|integer|min:0',
             'price' => 'sometimes|required|integer|min:1',
@@ -375,6 +362,8 @@ class ProductController extends Controller
             'user_id' => $request->input('userId'),
             'edited_by' => auth()->id(),
             'action' => 'update',
+            'old_name' => $product->name,
+            'new_name' => $request->input('name'),
             'old_quantity' => $product->quantity,
             'quantity' => $request->input('quantity'),
             'old_price' => $product->price,
@@ -420,6 +409,8 @@ class ProductController extends Controller
            'action' => 'delete',
            'old_quantity' => $product->quantity,
            'quantity' => 0,
+           'old_name' => $product->name,
+           'new_name' => $product->name,
            'old_price' => $product->price,
            'price' => 0,
            'old_total_price' => $product->price * $product->quantity,

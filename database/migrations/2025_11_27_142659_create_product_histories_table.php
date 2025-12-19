@@ -14,6 +14,8 @@ class CreateProductHistoriesTable extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreignId('edited_by')->nullable()->constrained('users')->nullOnDelete();;
             $table->string('action');
+            $table->string('old_name');
+            $table->string('new_name');
             $table->string('old_quantity');
             $table->integer('quantity');
             $table->string('old_price');

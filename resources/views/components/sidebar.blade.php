@@ -58,7 +58,7 @@
         👥 Foydalanuvchilar
     </a>
     <a class="nav-item {{ request()->is('admin/history*') ? 'active' : '' }}" href="/admin/history">
-        📜 Tarix
+        📜 Tarix - History
     </a>
 
 </div>

@@ -64,49 +64,37 @@ class SalesController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity'   => 'required|integer|min:1',
-            'user_id'    => 'nullable|integer|exists:users,id',
         ]);
 
-        $currentUser = auth()->user();
-        $creatorId = $currentUser->id;
+        $userId = auth()->id();
 
-        // ✅ superAdmin boshqa user nomidan sotishi mumkin
-        if ($currentUser->hasRole('superAdmin') && $request->filled('user_id')) {
-            $creatorId = $request->user_id;
-        }
-        // ✅ admin faqat o'z yoki o'z qo'shgan userlari
-        elseif ($currentUser->hasRole('admin') && $request->filled('user_id')) {
-            $allowedUserIds = User::where('created_by', $currentUser->id)
-                ->pluck('id')
-                ->toArray();
+        // ❗ Faqat o'ziga tegishli productni topamiz
+        $product = Product::where('id', $request->product_id)
+            ->where('created_by', $userId)
+            ->first();
 
-            $allowedUserIds[] = $currentUser->id;
-
-            if (!in_array($request->user_id, $allowedUserIds)) {
-                return response()->json([
-                    'message' => 'Siz faqat o‘z nomingiz yoki o‘z qo‘shgan userlar nomidan sotishingiz mumkin.'
-                ], 403);
-            }
-
-            $creatorId = $request->user_id;
+        if (!$product) {
+            return response()->json([
+                'message' => 'Siz faqat o‘zingizga tegishli mahsulotni sota olasiz'
+            ], 403);
         }
 
-        $product = Product::findOrFail($request->product_id);
-
+        // ❗ Omborda yetarlimi?
         if ($request->quantity > $product->quantity) {
             return response()->json([
-                'message' => 'Not enough product in stock'
+                'message' => 'Not enough product in stock',
+                'quantity' => $product->quantity
             ], 400);
         }
 
-        DB::transaction(function () use ($request, $product, $creatorId) {
+        DB::transaction(function () use ($request, $product, $userId) {
 
             // 🔥 SALE SAQLANADI
             Sales::create([
-                'product_id'  => $request->product_id,
+                'product_id'  => $product->id,
                 'quantity'    => $request->quantity,
                 'total_price' => $request->quantity * $product->price,
-                'created_by'  => $creatorId, // ⭐ MUHIM JOY
+                'created_by'  => $userId,
             ]);
 
             // 🔥 PRODUCT STOCK KAMAYADI
@@ -117,7 +105,6 @@ class SalesController extends Controller
             'message' => 'Sale added successfully'
         ], 201);
     }
-
 
     public function show()
     {
