@@ -132,7 +132,7 @@ document.getElementById("soldForm").addEventListener("submit", async function(e)
         console.log(data);
 
         if (res.ok) {
-            showToast("Sotilgan mahsulot qo'shildi!", "success");
+            showTopRightToast("Sotilgan mahsulot qo'shildi!");
             document.getElementById("soldForm").reset();
 
             // 🔥 MUHIM JOY — jadvalni darhol yangilaymiz
@@ -202,38 +202,24 @@ async function loadSales() {
         console.error("Sotilgan mahsulotlarni yuklab bo'lmadi:", err);
     }
 }
-
-    function showToast(message, type = "success") {
-        const toast = document.getElementById("toast");
-        const toastMessage = document.getElementById("toastMessage");
-        const toastProgress = toast.querySelector(".toast-progress");
-        const toastClose = toast.querySelector(".toast-close");
-
-        toastMessage.textContent = message;
-
-        // type ga qarab rang berish
-        toast.className = "toast"; // klassni tozalash
-        if(type === "error") {
-            toast.classList.add("error");
-        }
-
-        toast.classList.add("show");
-
-        // progress animatsiyasini qayta ishga tushirish
-        toastProgress.style.animation = "none";
-        void toastProgress.offsetWidth; // reflow trigger
-        toastProgress.style.animation = "progressBar 3s linear forwards";
-
-        // 3 soniyadan keyin avtomatik yopish
-        let timeout = setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
-
-        // X tugmasini bosganida toastni yopish
-        toastClose.onclick = () => {
-            toast.classList.remove("show");
-            clearTimeout(timeout);
-        };
+    function showTopRightToast(message, icon = 'success') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            showCloseButton: true,
+            width: 350,
+            padding: '1em',
+            didOpen: (toast) => {
+                // Sichqoncha ustida timer to‘xtaydi
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
     }
 
 

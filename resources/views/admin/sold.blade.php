@@ -284,7 +284,7 @@
             }
 
             // ✅ MUVAFFAQIYAT
-            showToast('Sotilgan mahsulot qo‘shildi' , 'success')
+            showTopRightToast('Sotilgan mahsulot qo‘shildi' , 'success')
 
             // Swal.fire({
             //     icon: "success",
@@ -511,7 +511,7 @@
                         });
                         const data = await res.json();
                         if (res.ok) {
-                            showToast("Sotuv o'chirildi!", "success");
+                            showTopRightToast("Sotilgan mahsulot o'chirildi!")
                             loadSales();
                         } else {
                             alert(data.message || "Xatolik yuz berdi");
@@ -571,7 +571,7 @@
 
             const data = await res.json();
             if (res.ok) {
-                showToast("Sotuv yangilandi!", "success");
+                showTopRightToast('Sotuv yangilandi!' , 'success')
                 closeEditSaleModal();
                 loadSales();
             } else {
@@ -582,38 +582,6 @@
             alert("Serverga ulanib bo'lmadi");
         }
     });
-    function showToast(message, type = "success") {
-        const toast = document.getElementById("toast");
-        const toastMessage = document.getElementById("toastMessage");
-        const toastProgress = toast.querySelector(".toast-progress");
-        const toastClose = toast.querySelector(".toast-close");
-
-        toastMessage.textContent = message;
-
-        // type ga qarab rang berish
-        toast.className = "toast"; // klassni tozalash
-        if(type === "error") {
-            toast.classList.add("error");
-        }
-
-        toast.classList.add("show");
-
-        // progress animatsiyasini qayta ishga tushirish
-        toastProgress.style.animation = "none";
-        void toastProgress.offsetWidth; // reflow trigger
-        toastProgress.style.animation = "progressBar 3s linear forwards";
-
-        // 3 soniyadan keyin avtomatik yopish
-        let timeout = setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
-
-        // X tugmasini bosganida toastni yopish
-        toastClose.onclick = () => {
-            toast.classList.remove("show");
-            clearTimeout(timeout);
-        };
-    }
 
     document.getElementById("closeEditSaleModalBtn").addEventListener("click", function () {
         closeEditSaleModal();
@@ -633,6 +601,25 @@
             closeSalesModal();
         }
     });
+    function showTopRightToast(message, icon = 'success') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            showCloseButton: true,
+            width: 350,
+            padding: '1em',
+            didOpen: (toast) => {
+                // Sichqoncha ustida timer to‘xtaydi
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    }
 
 
     </script>

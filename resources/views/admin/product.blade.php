@@ -286,7 +286,7 @@
 
 
             if (res.ok) {
-                showToast("Mahsulot muvaffaqiyatli qo'shildi!", "success");
+                showTopRightToast("Mahsulot muvaffaqiyatli qo'shildi!")
                 document.getElementById("productForm").reset();
 
                 loadProducts();
@@ -493,7 +493,7 @@
                         });
                         const data = await res.json();
                         if (res.ok) {
-                            showToast("Mahsulot o'chirildi!", "success");
+                            showTopRightToast("Mahsulot o'chirildi!");
                             loadProducts();
                         } else {
                             Swal.fire('Xatolik', data.message || "Xatolik yuz berdi", 'error');
@@ -508,7 +508,7 @@
 
 
         // UPDATE
-        const userId = btn.getAttribute("data-user-id")
+        const userId = btn.getAttribute("data-user-id");
         if (btn && btn.classList.contains("btn-edit")) {
             const product = {
                 id: btn.dataset.id,
@@ -561,7 +561,7 @@
             const data = await res.json();
 
             if (res.ok) {
-                showToast("Mahsulot yangilandi!", "success");
+                showTopRightToast("Mahsulot yangilandi!")
                 closeEditModal();
                 loadProducts();
             } else {
@@ -646,7 +646,7 @@
             console.log("FORCE CREATE RESPONSE:", data);
 
             if (res.ok) {
-                showToast("Mahsulot Qo'shildi!", "success");
+                showTopRightToast("Mahsulot Qo'shildi!")
                 document.getElementById("productModal").style.display = "none";
                 document.getElementById("productForm").reset();
                 loadProducts();
@@ -657,38 +657,7 @@
             console.error(err);
         }
     });
-    function showToast(message, type = "success") {
-        const toast = document.getElementById("toast");
-        const toastMessage = document.getElementById("toastMessage");
-        const toastProgress = toast.querySelector(".toast-progress");
-        const toastClose = toast.querySelector(".toast-close");
 
-        toastMessage.textContent = message;
-
-        // type ga qarab rang berish
-        toast.className = "toast"; // klassni tozalash
-        if(type === "error") {
-            toast.classList.add("error");
-        }
-
-        toast.classList.add("show");
-
-        // progress animatsiyasini qayta ishga tushirish
-        toastProgress.style.animation = "none";
-        void toastProgress.offsetWidth; // reflow trigger
-        toastProgress.style.animation = "progressBar 3s linear forwards";
-
-        // 3 soniyadan keyin avtomatik yopish
-        let timeout = setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
-
-        // X tugmasini bosganida toastni yopish
-        toastClose.onclick = () => {
-            toast.classList.remove("show");
-            clearTimeout(timeout);
-        };
-    }
     document.getElementById("closeEditModalBtn").addEventListener("click", function() {
         closeEditModal();
     });
@@ -717,6 +686,26 @@
             document.getElementById("productModal").style.display = "none";
         }
     });
+
+    function showTopRightToast(message, icon = 'success') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            showCloseButton: true,
+            width: 350,
+            padding: '1em',
+            didOpen: (toast) => {
+                // Sichqoncha ustida timer to‘xtaydi
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    }
 
 
 
