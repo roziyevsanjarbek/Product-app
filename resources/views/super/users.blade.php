@@ -524,13 +524,16 @@
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
                 <tr>
-                    <th>Ism</th>
-                    <th>Email</th>
-                    <th>Rol</th>
-                    <th>O'chirilgan admin</th>
-                    <th>O'chirilgan vaqti</th>
+                    <th>Oldingi ism</th>
+                    <th>Yangi ism</th>
+                    <th>Oldingi email</th>
+                    <th>Yangi email</th>
+                    <th>Oldingi rol</th>
+                    <th>Yangilangan admin</th>
+                    <th>Yangilangan vaqti</th>
                 </tr>
                 </thead>
+
                 <tbody id="userHistoryBody">
                 <tr>
                     <td colspan="5" style="text-align:center; padding:40px;">
@@ -666,7 +669,7 @@
                     <button class="btn-delete" data-id="${user.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" color="white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-icon lucide-trash"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     ️</button>
-                    <button class="btn-history history-btn" data-id="">
+                    <button class="btn-history history-btn" data-id="${user.id}">
                         <svg xmlns="http://www.w3.org/2000/svg" color="white" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
                     </button>
                 </td>
@@ -817,53 +820,74 @@
     async function loadUserHistory(userId = null) {
         const token = localStorage.getItem("token");
         const tbody = document.getElementById("userHistoryBody");
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Yuklanmoqda...</td></tr>`;
+
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="7" style="text-align:center; padding:40px;">
+                Yuklanmoqda...
+            </td>
+        </tr>
+    `;
 
         try {
-            const res = await fetch(`${API_BASE}/history${userId ? '?user_id=' + userId : ''}`, {
+            const res = await fetch(`${API_BASE}/history/${userId}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
                 }
             });
 
-            const data = await res.json();
+            const response = await res.json();
 
-            if (!res.ok || !data.success) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Xatolik: ${data.message || 'API xatosi'}</td></tr>`;
-                return;
-            }
-
-            const histories = data.data;
-
-            if (histories.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">O'chirilgan foydalanuvchi yo'q</td></tr>`;
+            if (!response.data || response.data.length === 0) {
+                tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center; padding:40px;">
+                        Tarix mavjud emas
+                    </td>
+                </tr>
+            `;
                 return;
             }
 
             tbody.innerHTML = "";
 
-            histories.forEach(item => {
-                const roles = item.before.roles ? item.before.roles.map(r => r.name).join(", ") : "-";
-                const adminName = item.admin ? item.admin.name : "-";
-                const deletedAt = new Date(item.created_at).toLocaleString();
+            response.data.forEach(item => {
+                // 🔹 OLD ROLE (JSON string)
+                let oldRoles = "-";
+                try {
+                    const parsed = JSON.parse(item.old_role);
+                    oldRoles = parsed.map(r => r.name).join(", ");
+                } catch (e) {}
+
+                const adminName = item.user ? item.user.name : "-";
+                const updatedAt = new Date(item.created_at).toLocaleString();
 
                 tbody.innerHTML += `
                 <tr>
-                    <td>${item.before.name}</td>
-                    <td>${item.before.email}</td>
-                    <td>${roles}</td>
+                    <td>${item.old_name}</td>
+                    <td>${item.new_name}</td>
+                    <td>${item.old_email}</td>
+                    <td>${item.new_email}</td>
+                    <td>${oldRoles}</td>
                     <td>${adminName}</td>
-                    <td>${deletedAt}</td>
+                    <td>${updatedAt}</td>
                 </tr>
             `;
             });
 
         } catch (err) {
-            console.error("Tarixni yuklab bo'lmadi:", err);
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Serverga ulanib bo'lmadi</td></tr>`;
+            console.error(err);
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align:center; padding:40px;">
+                    Serverga ulanib bo‘lmadi
+                </td>
+            </tr>
+        `;
         }
     }
+
 
     function showToast(message, type = "success") {
         const toast = document.getElementById("toast");

@@ -662,7 +662,7 @@
                     tbody.innerHTML += `
                     <tr>
                         <td style="padding:10px; text-align:center;">${index + 1}</td>
-                        <td style="padding:10px; text-align:center;">${item.product_id}</td>
+                        <td style="padding:10px; text-align:center;">${item.product.name}</td>
                         <td style="padding:10px; text-align:center;">${item.old_quantity}</td>
                         <td style="padding:10px; text-align:center;">${item.quantity}</td>
                         <td style="padding:10px; text-align:center;">${item.old_price}</td>

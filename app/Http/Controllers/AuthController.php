@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserDeleteHistory;
+use App\Models\UserHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -153,13 +154,24 @@ class AuthController extends Controller
             $validated['password'] = bcrypt($validated['password']);
         }
 
+        $history = UserHistory::query()->create([
+            'user_id' => $user->id,
+            'edited_by' => auth()->id(),
+            'action' => 'update',
+            'old_name' => $user->name,
+            'new_name' => $validated['name'],
+            'old_email' => $user->email,
+            'new_email' => $validated['email'],
+        ]);
+
         // User update
         $user->update($validated);
 
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully',
-            'data' => $user
+            'data' => $user,
+            'history' => $history
         ]);
     }
 
@@ -196,10 +208,22 @@ class AuthController extends Controller
             );
             $user->roles()->sync([$role->id]); // eski rollarni o‘chirib yangi rol biriktiradi
         }
+        $history = UserHistory::query()->create([
+            'user_id' => $user->id,
+            'edited_by' => auth()->id(),
+            'action' => 'update',
+            'old_name' => $user->name,
+            'new_name' => $request->name,
+            'old_email' => $user->email,
+            'new_email' => $request->email,
+            'old_role' => $user->roles,
+            'new_role' => $request->role,
+        ]);
 
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $user->load('roles')
+            'user' => $user->load('roles'),
+            'history' => $history
         ]);
     }
 
@@ -222,14 +246,17 @@ class AuthController extends Controller
         // Rol va boshqa ma'lumotlarni olish
         $roles = $user->roles()->get(['roles.name', 'roles.id']);
 
-        // Tarixga saqlash
-        UserDeleteHistory::create([
-            'before' => [
-                'name' => $user->name,
-                'email' => $user->email,
-                'roles' => $roles,
-            ],
-            'admin_id' => $admin->id,
+       // Add History
+        $history = UserHistory::query()->create([
+            'user_id' => $user->id,
+            'edited_by' => auth()->id(),
+            'action' => 'delete',
+            'old_name' => $user->name,
+            'new_name' => 'delete',
+            'old_email' => $user->email,
+            'new_email' => 'delete',
+            'old_role' => $roles,
+            'new_role' => 'delete',
         ]);
 
         // Foydalanuvchini o'chirish
@@ -242,12 +269,31 @@ class AuthController extends Controller
     }
 
     // O'chirilgan foydalanuvchilar tarixini olish
-    public function history()
+    public function history(Request $request, $userId)
     {
-        $histories = UserDeleteHistory::with('admin')->latest()->get();
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ]);
+        }
+
+        if($user->hasRole('superAdmin')) {
+            $history = UserHistory::query()
+                ->with('user')
+                ->where('user_id', $userId)
+                ->get();
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to view this page',
+                'data' => $history
+            ]);
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $histories
+            'message' => 'Foydalanuvchilar tarixi',
         ]);
     }
 

@@ -290,7 +290,7 @@ class SalesController extends Controller
         //Super Admin
         if ($user->hasRole('superAdmin')) {
             $history = SaleHistory::query()
-                ->with('user')
+                ->with(['user', 'product'])
                 ->where('user_id', $userId)
                 ->where('sale_id', $saleId)
                 ->get();
