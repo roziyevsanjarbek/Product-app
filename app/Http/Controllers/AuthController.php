@@ -186,6 +186,17 @@ class AuthController extends Controller
             'email'    => 'sometimes|required|email|unique:users,email,' . $user->id,
             'password' => 'sometimes|min:6',
         ]);
+        $history = UserHistory::query()->create([
+            'user_id' => $user->id,
+            'edited_by' => auth()->id(),
+            'action' => 'update',
+            'old_name' => $user->name,
+            'new_name' => $request->name,
+            'old_email' => $user->email,
+            'new_email' => $request->email || 'user',
+            'old_role' => $user->roles,
+            'new_role' => $request->role,
+        ]);
 
         if ($request->has('name')) {
             $user->name = $request->name;
@@ -208,17 +219,7 @@ class AuthController extends Controller
             );
             $user->roles()->sync([$role->id]); // eski rollarni o‘chirib yangi rol biriktiradi
         }
-        $history = UserHistory::query()->create([
-            'user_id' => $user->id,
-            'edited_by' => auth()->id(),
-            'action' => 'update',
-            'old_name' => $user->name,
-            'new_name' => $request->name,
-            'old_email' => $user->email,
-            'new_email' => $request->email,
-            'old_role' => $user->roles,
-            'new_role' => $request->role,
-        ]);
+
 
         return response()->json([
             'message' => 'User updated successfully',
@@ -287,6 +288,25 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'You are not authorized to view this page',
+                'data' => $history
+            ]);
+        }
+
+        if($user->hasRole('admin')) {
+            $createUser = User::query()
+                ->where('created_by', $user->id)
+                ->pluck('id')
+                ->toArray();
+
+            if($userId != $user->id && !in_array($userId, $createUser)){
+                return response()->json([
+                    'success' => false,
+                ], 403);
+            }
+            $history = UserHistory::query()->with('user')->where('user_id', $userId)->get();
+
+            return response()->json([
+                'success' => true,
                 'data' => $history
             ]);
         }
