@@ -35,6 +35,9 @@
                 <button type="submit" class="btn btn-primary">Sotilgan Mahsulot Qoʻshish</button>
             </form>
         </div>
+        <div class="pagination-wrapper">
+            <div id="pagination" class="pagination"></div>
+        </div>
 
         <div class="table-container">
             <table>
@@ -411,11 +414,12 @@
 
 
     // Sotilgan mahsulotlarni yuklash
-    async function loadSales() {
+    let currentPage = 1;
+    async function loadSales(page = 1) {
         try {
             const token = localStorage.getItem("token");
 
-            const res = await fetch(`${API_BASE}/sales`, {
+            const res = await fetch(`${API_BASE}/sales?page=${page}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -446,7 +450,7 @@
                 return;
             }
 
-            data.data.forEach(sale => {
+            data.data.data.forEach(sale => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                 <td>${sale.product.name}</td>
@@ -474,6 +478,26 @@
             `;
                 tbody.appendChild(tr);
             });
+            const paginationContainer = document.getElementById("pagination");
+
+            // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
+            if (data.data.last_page <= 1) {
+                paginationContainer.style.display = "none";
+                return;
+            }
+
+            paginationContainer.style.display = "flex";
+            paginationContainer.innerHTML = "";
+
+            // Raqamli pagination
+            for (let i = 1; i <= data.data.last_page; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                btn.className = i === data.data.current_page ? "active" : "";
+                btn.onclick = () => loadSales(i);
+                paginationContainer.appendChild(btn);
+            }
+
 
         } catch (err) {
             console.error("Sotilgan mahsulotlarni yuklab bo'lmadi:", err);

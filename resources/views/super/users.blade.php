@@ -45,6 +45,9 @@
                 <button type="submit" class="btn btn-primary">Foydalanuvchi qo‘shish</button>
             </form>
         </div>
+        <div class="pagination-wrapper">
+            <div id="pagination" class="pagination"></div>
+        </div>
 
         <div class="table-container">
             <table>
@@ -224,12 +227,13 @@
         loadUsers();
     });
 
-    async function loadUsers() {
+    let currentPage = 1;
+    async function loadUsers(page = 1) {
         const token = localStorage.getItem("token");
         const tbody = document.getElementById("userTableBody");
 
         try {
-            const res = await fetch(`${API_BASE}/users`, {
+            const res = await fetch(`${API_BASE}/users?page=${page}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -251,7 +255,7 @@
                 return;
             }
 
-            const users = data.data;
+            const users = data.data.data;
 
             if (users.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">Foydalanuvchi yo‘q</td></tr>`;
@@ -287,7 +291,6 @@
             `;
             tbody.appendChild(tr);
         });
-
             // Edit tugmalarini qo'shish
             document.querySelectorAll(".btn-edit").forEach(btn => {
                 btn.addEventListener("click", () => editUser(btn.dataset.id));
@@ -297,6 +300,27 @@
             document.querySelectorAll(".btn-delete").forEach(btn => {
                 btn.addEventListener("click", () => deleteUser(btn.dataset.id));
             });
+
+            const paginationContainer = document.getElementById("pagination");
+
+            // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
+            if (data.data.last_page <= 1) {
+                paginationContainer.style.display = "none";
+                return;
+            }
+
+            paginationContainer.style.display = "flex";
+            paginationContainer.innerHTML = "";
+
+            // Raqamli pagination
+            for (let i = 1; i <= data.data.last_page; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                btn.className = i === data.data.current_page ? "active" : "";
+                btn.onclick = () => loadUsers(i);
+                paginationContainer.appendChild(btn);
+            }
+
 
         } catch (err) {
             console.error("Foydalanuvchilarni yuklab bo'lmadi:", err);

@@ -32,6 +32,9 @@
                 <button type="submit" class="btn btn-primary">Sotilgan Mahsulot Qoʻshish</button>
             </form>
         </div>
+        <div class="pagination-wrapper">
+            <div id="pagination" class="pagination"></div>
+        </div>
 
         <div class="table-container">
             <table>
@@ -59,6 +62,8 @@
          <span class="toast-close">&times;</span>
          <div class="toast-progress"></div>
      </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     const API_BASE = "/api";
 
@@ -140,6 +145,19 @@ document.getElementById("soldForm").addEventListener("submit", async function(e)
         } else {
             console.log(data.message || "Xatolik yuz berdi");
         }
+
+        // 400 → omborda yetarli emas
+        if (res.status === 400) {
+            Swal.fire({
+                icon: "warning",
+                title: "Yetarli mahsulot yo‘q",
+                html: `
+                        <p>${data.message}</p>
+                        <b>Omborda mavjud:</b> ${data.quantity} dona
+                             `
+            });
+
+        }
     } catch (err) {
         console.error(err);
         console.log("Serverga ulanib bo'lmadi");
@@ -153,9 +171,10 @@ document.getElementById("soldForm").addEventListener("submit", async function(e)
 const token = localStorage.getItem("token"); // ✔️ token globalga chiqarildi
 
 // Sotilgan mahsulotlarni yuklash
-async function loadSales() {
+    let currentPage = 1;
+async function loadSales(page = 1) {
     try {
-        const res = await fetch(`${API_BASE}/sale`, {
+        const res = await fetch(`${API_BASE}/sale?page=${page}`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Accept": "application/json"
@@ -197,6 +216,26 @@ async function loadSales() {
                 <td>${new Date(sale.created_at).toLocaleString()}</td>`;
             tbody.appendChild(tr);
         });
+
+        const paginationContainer = document.getElementById("pagination");
+
+        // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
+        if (data.data.last_page <= 1) {
+            paginationContainer.style.display = "none";
+            return;
+        }
+
+        paginationContainer.style.display = "flex";
+        paginationContainer.innerHTML = "";
+
+        // Raqamli pagination
+        for (let i = 1; i <= data.data.last_page; i++) {
+            const btn = document.createElement("button");
+            btn.textContent = i;
+            btn.className = i === data.data.current_page ? "active" : "";
+            btn.onclick = () => loadProducts(i);
+            paginationContainer.appendChild(btn);
+        }
 
     } catch (err) {
         console.error("Sotilgan mahsulotlarni yuklab bo'lmadi:", err);

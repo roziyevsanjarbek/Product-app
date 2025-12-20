@@ -48,6 +48,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/all/product-history/', [HistoryController::class, 'allHistoryByProduct']);
     Route::get('/all/sale-history/', [HistoryController::class, 'allHistoryBySale']);
     Route::get('/all/user-history', [HistoryController::class, 'allHistoryByUser']);
+    Route::get('/sale-history-search-date', [HistoryController::class, 'saleHistorySearchDate']);
+    Route::get('/product-history-search-date', [HistoryController::class, 'productHistorySearchDate']);
+    Route::get('/user-history-search-date', [HistoryController::class, 'userHistorySearchDate']);
+    Route::get('/sale-search-action', [HistoryController::class, 'saleSearchAction']);
+    Route::get('/product-search-action', [HistoryController::class, 'productSearchAction']);
+    Route::get('/user-search-action', [HistoryController::class, 'userSearchAction']);
+
 
 
 

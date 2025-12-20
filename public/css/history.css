@@ -53,6 +53,19 @@ body {
     font-size: 18px;
     color: var(--accent);
 }
+.reset-btn {
+    padding: 11px 50px;
+    background: #125fda;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.reset-btn:hover {
+    background: #4b5563;
+}
 
 .nav-item {
     padding: 15px 20px;

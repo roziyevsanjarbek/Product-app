@@ -51,7 +51,7 @@ async function loadDashboardStats() {
             }
         });
         const productsData = await productsRes.json();
-        const products = productsData.data || [];
+        const products = productsData.data.data || [];
 
         // --- Sotilgan mahsulotlar ---
         const salesRes = await fetch(`${API_BASE}/sales`, {
@@ -61,7 +61,7 @@ async function loadDashboardStats() {
             }
         });
         const salesData = await salesRes.json();
-        const sales = salesData.data || [];
+        const sales = salesData.data.data || [];
 
         // --- Hisoblash ---
         let totalProductsQty = 0;
@@ -97,7 +97,7 @@ async function loadDashboardStats() {
             }
         });
         const usersData = await usersRes.json();
-        const users = usersData.data || [];
+        const users = usersData.data.data || [];
         const userCount = users.length;
 
         // --- DOM ga chiqarish ---

@@ -30,6 +30,10 @@
                     <button type="submit" class="btn btn-primary">Mahsulot Qoʻshish</button>
                 </form>
             </div>
+            <div class="pagination-wrapper">
+                <div id="pagination" class="pagination"></div>
+            </div>
+
 
             <div class="table-container">
                 <table>
@@ -83,7 +87,7 @@
          <span class="toast-close">&times;</span>
          <div class="toast-progress"></div>
      </div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
      <script>
     const API_BASE = "/api";
 
@@ -274,11 +278,12 @@
 
     const token = localStorage.getItem("token");
 
-    async function loadProducts() {
+    let currentPage = 1;
+    async function loadProducts(page = 1) {
         const tbody = document.getElementById("productTableBody");
 
         try {
-            const res = await fetch(`${API_BASE}/product`, {
+            const res = await fetch(`${API_BASE}/product?page=${page}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -299,7 +304,7 @@
                 return;
             }
 
-            const products = data.data;
+            const products = data.data.data;
 
             if (products.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">Mahsulot qoʻshilmagan</td></tr>`;
@@ -321,6 +326,27 @@
             `;
                 tbody.appendChild(tr);
             });
+
+            const paginationContainer = document.getElementById("pagination");
+
+            // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
+            if (data.data.last_page <= 1) {
+                paginationContainer.style.display = "none";
+                return;
+            }
+
+            paginationContainer.style.display = "flex";
+            paginationContainer.innerHTML = "";
+
+            // Raqamli pagination
+            for (let i = 1; i <= data.data.last_page; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                btn.className = i === data.data.current_page ? "active" : "";
+                btn.onclick = () => loadProducts(i);
+                paginationContainer.appendChild(btn);
+            }
+
 
         } catch (error) {
             console.error(error);

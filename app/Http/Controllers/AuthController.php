@@ -399,13 +399,13 @@ class AuthController extends Controller
             // superAdmin hamma foydalanuvchilarni ko'radi, lekin o'zini emas
             $users = User::with('roles')
                 ->where('id', '!=', $currentUser->id)
-                ->get();
+                ->paginate(10);
         } elseif ($currentUser->hasRole('admin')) {
             // admin faqat o'z qo'shgan userlarini ko'radi, o'zini emas
             $users = User::with('roles')
                 ->where('created_by', $currentUser->id)
                 ->where('id', '!=', $currentUser->id)
-                ->get();
+                ->paginate(10);
         } else {
             // oddiy user boshqa foydalanuvchilarni ko'rmaydi, shuning uchun bo'sh collection
             $users = collect();

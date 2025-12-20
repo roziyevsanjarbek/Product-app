@@ -29,6 +29,70 @@ body {
     display: flex;
     min-height: 100vh;
 }
+.pagination-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+
+    margin: 16px 0 0 0;
+    padding: 14px 20px;
+
+    background: linear-gradient(180deg, #1f2937, #111827);
+    border-radius: 8px;
+    border: 1px solid #374151;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.pagination {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid #4b5563;
+    background-color: #020617;
+    color: #e5e7eb;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination .active {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+@media (max-width: 640px) {
+    .pagination-wrapper {
+        justify-content: center;
+        margin: 12px;
+    }
+
+    .pagination button {
+        min-width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+}
 
 /* Sidebar */
 .sidebar {
@@ -935,4 +999,5 @@ tr:hover {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+
 }

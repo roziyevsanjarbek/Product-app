@@ -27,7 +27,7 @@ class SalesController extends Controller
         if ($currentUser->hasRole('superAdmin')) {
             $sales = Sales::with(['product', 'creator'])
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(10);
         } elseif ($currentUser->hasRole('admin')) {
             // Admin o'z qo'shgan sales
             $ownSales = Sales::where('created_by', $currentUser->id)->pluck('id');
@@ -43,13 +43,13 @@ class SalesController extends Controller
             $sales = Sales::with(['product', 'creator'])
                 ->whereIn('id', $salesIds)
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(10);
         } else {
             // user faqat o'z saleslarini ko'radi
             $sales = Sales::with(['product', 'creator'])
                 ->where('created_by', $currentUser->id)
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(10);
         }
 
         return response()->json([

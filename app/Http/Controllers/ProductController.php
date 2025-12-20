@@ -27,7 +27,7 @@ class ProductController extends Controller
         if ($currentUser->hasRole('superAdmin')) {
             $products = Product::with('creator')
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(10);
         }
         // admin faqat o'z qo'shgan productlar va o'z qo'shgan userlarning productlarini ko'radi
         elseif ($currentUser->hasRole('admin')) {
@@ -46,7 +46,7 @@ class ProductController extends Controller
             $products = Product::with('creator')
                 ->whereIn('id', $productsIds)
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(10);
         }
 
         // user faqat o'z productlarini ko'radi
@@ -54,8 +54,9 @@ class ProductController extends Controller
             $products = Product::with('creator')
                 ->where('created_by', $currentUser->id)
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(10);
         }
+
 
         return response()->json([
             'success' => true,
@@ -330,7 +331,7 @@ class ProductController extends Controller
         $products = Product::with('creator') // creator relation bo‘lsa
             ->where('created_by', $userId) // faqat shu user productlari
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(5);
 
         return response()->json([
             'message' => 'Products fetched successfully',

@@ -25,6 +25,11 @@
                 <div class="stat-value" id="remainingCount">0</div>
                 <div class="stat-label" id="remainingValue">Qolgan qiymati: 0 so'm</div>
             </div>
+            <div class="stat-card" hidden="hidden">
+                <h3>Foydalanuvchilar</h3>
+                <div class="stat-value" id="userCount">0</div>
+                <div class="stat-label">Jami foydalanuvchilar</div>
+            </div>
         </div>
     </div>
 </div>
@@ -47,7 +52,7 @@ async function loadDashboardStats() {
             }
         });
         const productsData = await productsRes.json();
-        const products = productsData.data || [];
+        const products = productsData.data.data || [];
 
         // --- Sotilgan mahsulotlar ---
         const salesRes = await fetch(`${API_BASE}/sale`, {
@@ -57,7 +62,7 @@ async function loadDashboardStats() {
             }
         });
         const salesData = await salesRes.json();
-        const sales = salesData.data || [];
+        const sales = salesData.data.data || [];
 
         // --- Hisoblash ---
         let totalProductsQty = 0;
