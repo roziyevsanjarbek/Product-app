@@ -282,6 +282,16 @@
                 tbody.appendChild(tr);
             });
 
+            // Edit tugmalarini qo'shish
+            document.querySelectorAll(".btn-edit").forEach(btn => {
+                btn.addEventListener("click", () => editUser(btn.dataset.id));
+            });
+
+            // Delete tugmalarini qo'shish
+            document.querySelectorAll(".btn-delete").forEach(btn => {
+                btn.addEventListener("click", () => deleteUser(btn.dataset.id));
+            });
+
             const paginationContainer = document.getElementById("pagination");
 
             // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
@@ -301,17 +311,6 @@
                 btn.onclick = () => loadUsers(i);
                 paginationContainer.appendChild(btn);
             }
-
-
-            // Edit tugmalarini qo'shish
-            document.querySelectorAll(".btn-edit").forEach(btn => {
-                btn.addEventListener("click", () => editUser(btn.dataset.id));
-            });
-
-            // Delete tugmalarini qo'shish
-            document.querySelectorAll(".btn-delete").forEach(btn => {
-                btn.addEventListener("click", () => deleteUser(btn.dataset.id));
-            });
 
         } catch (err) {
             console.error("Foydalanuvchilarni yuklab bo'lmadi:", err);

@@ -21,7 +21,7 @@ class HistoryController extends Controller
             ], 401);
         }
         if($user->hasRole('superAdmin')){
-            $history = ProductHistory::query()->with(['user', 'product'])->get();
+            $history = ProductHistory::query()->with(['user', 'product'])->paginate(10);
             return response()->json([
                 'success' => true,
                 'data' => $history
@@ -42,7 +42,7 @@ class HistoryController extends Controller
             $history = ProductHistory::query()
                 ->whereIn('user_id', array_merge([$user->id], $createdUserIds))
                 ->with(['user', 'product'])
-                ->get();
+                ->paginate(10);
 
             return response()->json([
                 'success' => true,
@@ -69,7 +69,7 @@ class HistoryController extends Controller
 
         // superAdmin hamma tarixni oladi
         if ($user->hasRole('superAdmin')) {
-            $history = UserHistory::query()->with(['user', 'editor'])->get();
+            $history = UserHistory::query()->with(['user', 'editor'])->paginate(10);
             return response()->json([
                 'success' => true,
                 'data' => $history
@@ -93,7 +93,7 @@ class HistoryController extends Controller
                         ->orWhereIn('user_id', $createdUserIds);
                 })
                 ->with(['user', 'editor'])
-                ->get();
+                ->paginate(10);
 
             return response()->json([
                 'success' => true,
@@ -119,7 +119,7 @@ class HistoryController extends Controller
 
         // superAdmin hamma tarixni oladi
         if($user->hasRole('superAdmin')){
-            $history = SaleHistory::query()->with(['user', 'product'])->get();
+            $history = SaleHistory::query()->with(['user', 'product'])->paginate(10);
             return response()->json([
                 'success' => true,
                 'data' => $history
@@ -138,7 +138,7 @@ class HistoryController extends Controller
             $history = SaleHistory::query()
                 ->whereIn('user_id', array_merge([$user->id], $createdUserIds))
                 ->with(['user', 'product'])
-                ->get();
+                ->paginate(10);
 
             return response()->json([
                 'success' => true,
@@ -204,7 +204,7 @@ class HistoryController extends Controller
             ], 401);
         }
 
-        $query = SaleHistory::query()->with(['user', 'product']);
+        $query = ProductHistory::query()->with(['user', 'product']);
 
         // Rolega qarab limitlash
         if(!$user->hasRole('superAdmin')){
@@ -289,87 +289,51 @@ class HistoryController extends Controller
             'action' => 'required',
         ]);
 
-        if ($request->action == 'sale') {
-            $history = SaleHistory::query()
-                ->with(['user', 'product'])
-                ->orderBy('created_at', 'desc')
-                ->get();
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
+        $user = auth()->user();
+
+        $query = SaleHistory::query()
+            ->with(['user', 'product'])
+            ->where('action', $request->action)
+            ->orderByDesc('created_at');
+
+        // 🔐 Role check
+        if (!$user->hasRole('superAdmin')) {
+            $createdUserIds = User::where('created_by', $user->id)->pluck('id')->toArray();
+            $query->whereIn('user_id', array_merge([$user->id], $createdUserIds));
         }
-        if ($request->action == 'update') {
-            $history = SaleHistory::query()
-                ->with(['user', 'product'])
-                ->where('action', $request->action)
-                ->get();
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
-        }
-        if ($request->action == 'delete') {
-            $history = SaleHistory::query()
-                ->with(['user', 'product'])
-                ->where('action', $request->action)
-                ->get();
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
-        }
+
         return response()->json([
-            'success' => false,
-            'message' => 'You are not authorized to view this page'
+            'success' => true,
+            'data' => $query->get()
         ]);
     }
 
-    public function productSearchAction(Request $request){
+
+    public function productSearchAction(Request $request)
+    {
         $request->validate([
             'action' => 'required',
         ]);
 
-        if ($request->action == 'update') {
-            $history = ProductHistory::query()
-                ->with(['user', 'product'])
-                ->where('action', 'update')
-                ->get();
+        $user = auth()->user();
 
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
+        $query = ProductHistory::query()
+            ->with(['user', 'product'])
+            ->where('action', $request->action)
+            ->orderByDesc('created_at');
 
-        }
-        if ($request->action == 'delete') {
-            $history = ProductHistory::query()
-                ->with(['user', 'product'])
-                ->where('action', 'delete')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
-
-        }
-        if ($request->action == 'add quantity') {
-            $history = ProductHistory::query()
-                ->with(['user', 'product'])
-                ->where('action', 'add quantity')
-                ->get();
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
+        // 🔐 Role check
+        if (!$user->hasRole('superAdmin')) {
+            $createdUserIds = User::where('created_by', $user->id)->pluck('id')->toArray();
+            $query->whereIn('user_id', array_merge([$user->id], $createdUserIds));
         }
 
         return response()->json([
-            'success' => false,
-            'message' => 'You are not authorized to view this page'
+            'success' => true,
+            'data' => $query->get()
         ]);
     }
+
 
     public function userSearchAction(Request $request)
     {
@@ -377,32 +341,28 @@ class HistoryController extends Controller
             'action' => 'required',
         ]);
 
-        if ($request->action == 'update') {
-            $history = UserHistory::query()
-                ->with(['user', 'editor'])
-                ->where('action', 'update')
-                ->get();
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
-        }
-        if ($request->action == 'delete') {
-            $history = UserHistory::query()
-                ->with(['user', 'editor'])
-                ->where('action', 'delete')
-                ->get();
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
-        }
-        return response()->json([
-            'success' => false,
-            'message' => 'You are not authorized to view this page'
-        ]);
+        $user = auth()->user();
 
+        $query = UserHistory::query()
+            ->with(['user', 'editor'])
+            ->where('action', $request->action)
+            ->orderByDesc('created_at');
+
+        if (!$user->hasRole('superAdmin')) {
+            $createdUserIds = User::where('created_by', $user->id)->pluck('id')->toArray();
+
+            $query->where(function ($q) use ($user, $createdUserIds) {
+                $q->where('edited_by', $user->id)
+                    ->orWhereIn('user_id', $createdUserIds);
+            });
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->get()
+        ]);
     }
+
 
 
 }

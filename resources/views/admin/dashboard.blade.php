@@ -44,7 +44,7 @@ async function loadDashboardStats() {
 
     try {
         // --- Mahsulotlar ---
-        const productsRes = await fetch(`${API_BASE}/products`, {
+        const productsRes = await fetch(`${API_BASE}/product`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Accept": "application/json"

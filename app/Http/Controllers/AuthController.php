@@ -187,6 +187,7 @@ class AuthController extends Controller
             'email'    => 'sometimes|required|email|unique:users,email,' . $user->id,
             'password' => 'sometimes|min:6',
         ]);
+
         $history = UserHistory::query()->create([
             'user_id' => $user->id,
             'edited_by' => auth()->id(),
@@ -195,7 +196,7 @@ class AuthController extends Controller
             'new_name' => $request->name,
             'old_email' => $user->email,
             'new_email' => $request->email || 'user',
-            'old_role' => $user->roles,
+            'old_role' => $user->roles->pluck('name')[0],
             'new_role' => $request->role,
         ]);
 

@@ -97,7 +97,7 @@
             }
 
             const select = document.getElementById("soldProduct");
-            data.data.forEach(product => {
+            data.data.data.forEach(product => {
                 const option = document.createElement("option");
                 option.value = product.id;
                 option.textContent = product.name;

@@ -5,6 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tarix - History</title>
     <link rel="stylesheet" href="{{ asset('css/history.css') }}">
+    <style>
+        .pagination-wrapper {
+            width: 100%;
+            box-sizing: border-box;
+
+            margin: 16px 0 0 0;
+            padding: 14px 20px;
+
+            background: linear-gradient(180deg, #1f2937, #111827);
+            border-radius: 8px;
+            border: 1px solid #374151;
+
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #4b5563;
+            background-color: #020617;
+            color: #e5e7eb;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination .active {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+        @media (max-width: 640px) {
+            .pagination-wrapper {
+                justify-content: center;
+                margin: 12px;
+            }
+
+            .pagination button {
+                min-width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+        }
+
+    </style>
 </head>
 <body>
 <!-- Added navbar -->
@@ -73,6 +140,9 @@
                     </tr>
                     </tbody>
                 </table>
+                <div class="pagination-wrapper">
+                    <div id="pagination" class="pagination"></div>
+                </div>
             </div>
         </section>
 
@@ -135,6 +205,9 @@
                     </tr>
                     </tbody>
                 </table>
+                <div class="pagination-wrapper">
+                    <div id="paginationProduct" class="pagination"></div>
+                </div>
             </div>
         </section>
 
@@ -194,6 +267,9 @@
                     </tbody>
                 </table>
             </div>
+            <div class="pagination-wrapper">
+                <div id="paginationUsers" class="pagination"></div>
+            </div>
         </section>
     </main>
 </div>
@@ -217,7 +293,8 @@
         loadUserHistory();
     });
 
-    async function loadProductHistory() {
+    let currentProductPage = 1;
+    async function loadProductHistory(page = 1) {
         const token = localStorage.getItem("token");
         const tbody = document.getElementById("productTableHistory");
 
@@ -230,7 +307,7 @@
     `;
 
         try {
-            const res = await fetch("/api/all/product-history/", {
+            const res = await fetch(`/api/all/product-history?page=${page}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -252,7 +329,7 @@
 
             tbody.innerHTML = "";
 
-            response.data.forEach((item, index) => {
+            response.data.data.forEach((item, index) => {
                 // 🔹 Action nomi
                 let actionText = "";
                 if (item.action === "create") actionText = "Yaratilgan";
@@ -265,7 +342,7 @@
 
                 tbody.innerHTML += `
                 <tr>
-                    <td>${index + 1}</td>
+                    <td>${response.data.from + index}</td>
                     <td>${item.old_name}</td>
                     <td>${item.new_name}</td>
                     <td>${actionText}</td>
@@ -280,6 +357,27 @@
                 </tr>
             `;
             });
+
+            const paginationContainer = document.getElementById("paginationProduct");
+
+            // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
+            if (response.data.last_page <= 1) {
+                paginationContainer.style.display = "none";
+                return;
+            }
+
+            paginationContainer.style.display = "flex";
+            paginationContainer.innerHTML = "";
+
+            // Raqamli pagination
+            for (let i = 1; i <= response.data.last_page; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                btn.className = i === response.data.current_page ? "active" : "";
+                btn.onclick = () => loadProductHistory(i);
+                paginationContainer.appendChild(btn);
+            }
+
 
         } catch (error) {
             console.error(error);
@@ -300,12 +398,10 @@
 
         const from = document.getElementById("productsDateFrom").value;
         const to = document.getElementById("productsDateTo").value;
-        const action = document.getElementById("productsAction").value;
 
         let url = "/api/product-history-search-date?";
         if (from) url += `from=${from}&`;
         if (to) url += `to=${to}&`;
-        if (action) url += `action=${action}&`;
 
         tbody.innerHTML = `
         <tr>
@@ -324,6 +420,9 @@
             });
 
             const response = await res.json();
+
+
+
 
             if (!response.success || response.data.length === 0) {
                 tbody.innerHTML = `
@@ -352,6 +451,8 @@
 
     function renderProductHistory(data) {
         const tbody = document.getElementById("productTableHistory");
+        console.log(data);
+
         tbody.innerHTML = "";
 
         data.forEach((item, index) => {
@@ -384,13 +485,15 @@
         `;
         });
     }
+
+
     async function searchProductHistoryByAction() {
         const token = localStorage.getItem("token");
         const tbody = document.getElementById("productTableHistory");
 
         const from = document.getElementById("productsDateFrom").value;
         const to = document.getElementById("productsDateTo").value;
-        const action = document.getElementById("productsStatus").value;
+        const action = document.getElementById("productsAction").value;
 
         let url = "/api/product-search-action?";
         if (from) url += `from=${from}&`;
@@ -414,6 +517,7 @@
             });
 
             const response = await res.json();
+            console.log(response)
 
             if (!response.success || !response.data || response.data.length === 0) {
                 tbody.innerHTML = `
@@ -426,7 +530,7 @@
                 return;
             }
 
-            renderSalesHistory(response.data);
+            renderProductsHistory(response.data);
 
         } catch (error) {
             console.error("Sale history yuklanmadi:", error);
@@ -441,7 +545,7 @@
     }
 
     function renderProductsHistory(data) {
-        const tbody = document.getElementById("salesTableHistory");
+        const tbody = document.getElementById("productTableHistory");
         tbody.innerHTML = "";
 
         data.forEach((item, index) => {
@@ -459,12 +563,15 @@
             tbody.innerHTML += `
             <tr>
                 <td>${index + 1}</td>
-                <td>${productName}</td>
+                <td>${item.old_name}</td>
+                <td>${item.new_name}</td>
+                <td>${statusText}</td>
                 <td>${item.old_quantity ?? "-"}</td>
                 <td>${item.quantity ?? "-"}</td>
                 <td>${item.old_price ?? "-"}</td>
                 <td>${item.price ?? "-"}</td>
-                <td>${statusText}</td>
+                <td>${item.old_total_price}</td>
+                <td>${item.total_price}</td>
                 <td>${userName}</td>
                 <td>${date}</td>
             </tr>
@@ -472,21 +579,19 @@
         });
     }
 
-    document.getElementById("salesDateFrom")
+    document.getElementById("productsDateFrom")
         .addEventListener("change", searchProductHistoryByAction);
 
-    document.getElementById("salesDateTo")
+    document.getElementById("productsDateTo")
         .addEventListener("change", searchProductHistoryByAction);
 
-    document.getElementById("salesStatus")
+    document.getElementById("productsAction")
         .addEventListener("change", searchProductHistoryByAction);
 
 
     document.getElementById("productsDateFrom").addEventListener("change", searchProductHistory);
     document.getElementById("productsDateTo").addEventListener("change", searchProductHistory);
-    document.getElementById("productsAction").addEventListener("change", searchProductHistory);
-
-
+    // document.getElementById("productsAction").addEventListener("change", searchProductHistory);
 
     function resetProductFilters() {
         document.getElementById("productsDateFrom").value = "";
@@ -502,7 +607,11 @@
 
 
 
-    async function loadSalesHistory() {
+
+
+
+    let currentPage = 1;
+    async function loadSalesHistory(page = 1) {
         const token = localStorage.getItem("token");
         const tbody = document.getElementById("salesTableHistory");
 
@@ -515,7 +624,7 @@
     `;
 
         try {
-            const res = await fetch("/api/all/sale-history/", {
+            const res = await fetch(`/api/all/sale-history?page=${page}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -524,7 +633,7 @@
 
             const response = await res.json();
 
-            if (!response.success || !response.data || response.data.length === 0) {
+            if (!response.success || !response.data || response.data.data.length === 0) {
                 tbody.innerHTML = `
                 <tr>
                     <td colspan="9" style="text-align:center; padding:40px;">
@@ -535,9 +644,10 @@
                 return;
             }
 
+
             tbody.innerHTML = "";
 
-            response.data.forEach((item, index) => {
+            response.data.data.forEach((item, index) => {
                 // 🔹 Action / Holat
                 let statusText = "";
                 if (item.action === "created") statusText = "Yaratilgan";
@@ -548,9 +658,10 @@
                 const date = new Date(item.created_at).toLocaleString();
                 const userName = item.user ? item.user.name : "delete";
 
+
                 tbody.innerHTML += `
                 <tr>
-                    <td>${index + 1}</td>
+                    <td>${response.data.from + index}</td>
                     <td>${item.product_id ? `${item.product_id}` : "delete"}</td>
                     <td>${item.old_quantity ?? "-"}</td>
                     <td>${item.quantity ?? "-"}</td>
@@ -562,6 +673,27 @@
                 </tr>
             `;
             });
+
+            const paginationContainer = document.getElementById("pagination");
+
+            // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
+            if (response.data.last_page <= 1) {
+                paginationContainer.style.display = "none";
+                return;
+            }
+
+            paginationContainer.style.display = "flex";
+            paginationContainer.innerHTML = "";
+
+            // Raqamli pagination
+            for (let i = 1; i <= response.data.last_page; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                btn.className = i === response.data.current_page ? "active" : "";
+                btn.onclick = () => loadSalesHistory(i);
+                paginationContainer.appendChild(btn);
+            }
+
 
         } catch (error) {
             console.error("Sale history yuklanmadi:", error);
@@ -782,7 +914,8 @@
 
 
 
-    async function loadUserHistory() {
+    let currentUsersPage = 1;
+    async function loadUserHistory(page = 1) {
         const token = localStorage.getItem("token");
         const tbody = document.getElementById("userHistoryBody");
 
@@ -795,7 +928,7 @@
     `;
 
         try {
-            const res = await fetch("/api/all/user-history/", {
+            const res = await fetch(`/api/all/user-history?page=${page}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
@@ -817,36 +950,53 @@
 
             tbody.innerHTML = "";
 
-            response.data.forEach((item, index) => {
+            response.data.data.forEach((item, index) => {
                 let statusText = "";
                 if (item.action === "created") statusText = "Yaratilgan";
                 else if (item.action === "update") statusText = "Yangilangan";
                 else if (item.action === "deleted") statusText = "O‘chirilgan";
                 else statusText = item.action;
-                // 🔹 OLD ROLE (JSON string → array)
-                let oldRoles = "-";
-                try {
-                    const parsed = JSON.parse(item.old_role);
-                    oldRoles = parsed.map(r => r.name).join(", ");
-                } catch (e) {}
+
 
                 // 🔹 Sana
                 const date = new Date(item.created_at).toLocaleString();
+                console.log(item);
 
                 tbody.innerHTML += `
                 <tr>
-                    <td>${index + 1}</td>
+                    <td>${response.data.from + index}</td>
                     <td>${item.old_name ?? "-"}</td>
                     <td>${item.new_name ?? "-"}</td>
                     <td>${item.old_email ?? "-"}</td>
                     <td>${item.new_email ?? "-"}</td>
-                    <td>${oldRoles}</td>
+                    <td>${item.old_role}</td>
                     <td>${item.editor.name}</td>
                     <td>${statusText}</td>
                     <td>${date}</td>
                 </tr>
             `;
             });
+
+            const paginationContainer = document.getElementById("paginationUsers");
+
+            // Agar faqat 1 sahifa bo'lsa — pagination chiqmasin
+            if (response.data.last_page <= 1) {
+                paginationContainer.style.display = "none";
+                return;
+            }
+
+            paginationContainer.style.display = "flex";
+            paginationContainer.innerHTML = "";
+
+            // Raqamli pagination
+            for (let i = 1; i <= response.data.last_page; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                btn.className = i === response.data.current_page ? "active" : "";
+                btn.onclick = () => loadUserHistory(i);
+                paginationContainer.appendChild(btn);
+            }
+
 
         } catch (error) {
             console.error("User history yuklanmadi:", error);
@@ -1021,13 +1171,13 @@
         const tbody = document.getElementById("userHistoryBody");
         tbody.innerHTML = "";
 
+
         data.forEach((item, index) => {
             let statusText = "";
             if (item.action === "create") statusText = "Yaratilgan";
             else if (item.action === "update") statusText = "Yangilangan";
             else if (item.action === "delete") statusText = "O‘chirilgan";
             else statusText = item.action;
-
             const oldName = item.old_name ?? "-";
             const newName = item.new_name ?? "-";
             const oldEmail = item.old_email ?? "-";
@@ -1066,7 +1216,7 @@
 
     document.getElementById("usersDateFrom").addEventListener("change", searchUserHistory);
     document.getElementById("usersDateTo").addEventListener("change", searchUserHistory);
-    document.getElementById("usersRole").addEventListener("change", searchUserHistory);
+    // document.getElementById("usersRole").addEventListener("change", searchUserHistory);
 
     function resetUsersFilters() {
         document.getElementById("usersDateFrom").value = "";

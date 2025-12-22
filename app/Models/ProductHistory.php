@@ -28,4 +28,5 @@ class ProductHistory extends Model
     {
         return $this->belongsTo(User::class, 'edited_by');
     }
+
 }
