@@ -1,16 +1,5 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Sahifasi</title>
-    <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
-
-</head>
-<body>
-
+<x-profile></x-profile>
 <!-- Sidebar Navigation -->
-<x-sidebar></x-sidebar>
 <div class="main-content">
     <div class="container">
         <!-- Header -->
@@ -31,6 +20,8 @@
             <span class="role" id="user-role">Role</span>
             <p id="user-email">📧 email@example.com</p>
         </div>
+    </div>
+</div>
     </div>
 </div>
 
@@ -200,6 +191,4 @@
     }
 
 </script>
-
-</body>
-</html>
+<x-footer></x-footer>

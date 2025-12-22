@@ -187,7 +187,7 @@
     // Mahsulotlarni yuklash
     async function loadProducts() {
         try {
-            const res = await fetch(`${API_BASE}/products`, { // API route tekshirilishi kerak
+            const res = await fetch(`${API_BASE}/product`, { // API route tekshirilishi kerak
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"

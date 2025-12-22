@@ -56,7 +56,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user-search-action', [HistoryController::class, 'userSearchAction']);
 
 
-
-
 });
 
