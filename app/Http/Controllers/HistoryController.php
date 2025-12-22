@@ -363,6 +363,160 @@ class HistoryController extends Controller
         ]);
     }
 
+    // O'chirilgan foydalanuvchilar tarixini olish
+    public function history($userId)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ]);
+        }
+
+        if($user->hasRole('superAdmin')) {
+            $history = UserHistory::query()
+                ->with('user')
+                ->where('user_id', $userId)
+                ->get();
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to view this page',
+                'data' => $history
+            ]);
+        }
+
+        if($user->hasRole('admin')) {
+            $createUser = User::query()
+                ->where('created_by', $user->id)
+                ->pluck('id')
+                ->toArray();
+
+            if($userId != $user->id && !in_array($userId, $createUser)){
+                return response()->json([
+                    'success' => false,
+                ], 403);
+            }
+            $history = UserHistory::query()->with('user')->where('user_id', $userId)->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $history
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Foydalanuvchilar tarixi',
+        ]);
+    }
+
+
+    public function productHistoryById($userId, $productId)
+    {
+        $currentUser = auth()->user();
+
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Foydalanuvchi tizimga kirmagan'
+            ], 401);
+        }
+
+        // ================= SUPER ADMIN =================
+        if ($currentUser->hasRole('superAdmin')) {
+
+            $histories = ProductHistory::with(['user', 'product'])
+                ->where('user_id', $userId)
+                ->where('product_id', $productId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $histories
+            ]);
+        }
+
+        // ================= ADMIN =================
+        if ($currentUser->hasRole('admin')) {
+
+            $createdUsers = User::where('created_by', $currentUser->id)
+                ->pluck('id')
+                ->toArray();
+
+            // admin faqat o‘zi yoki yaratgan userni ko‘ra oladi
+            if ($userId != $currentUser->id && !in_array($userId, $createdUsers)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Siz bu foydalanuvchining tarixini ko‘ra olmaysiz'
+                ], 403);
+            }
+
+            $histories = ProductHistory::with(['user', 'product'])
+                ->where('user_id', $userId)
+                ->where('product_id', $productId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $histories
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'History not found'
+        ]);
+
+    }
+
+    public function getSaleIdByUserId($userId, $saleId)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ]);
+        }
+        //Super Admin
+        if ($user->hasRole('superAdmin')) {
+            $history = SaleHistory::query()
+                ->with(['user', 'product'])
+                ->where('user_id', $userId)
+                ->where('sale_id', $saleId)
+                ->get();
+            return response()->json([
+                'success' => true,
+                'data' => $history
+
+            ]);
+        }elseif ($user->hasRole('admin')) {
+            $history = SaleHistory::query()
+                ->with('user')
+                ->where('user_id', $userId)
+                ->where('sale_id', $saleId)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $history
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'User not authenticated'
+        ]);
+
+    }
+
+
+
+
+
+
 
 
 }

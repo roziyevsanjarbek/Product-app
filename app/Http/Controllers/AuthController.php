@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Models\UserDeleteHistory;
 use App\Models\UserHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -74,42 +73,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-
-
-    public function addAdminUser(Request $request)
-    {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            // admin tomonidan yaratishda role optional emas, chunki doimo 'user' bo‘ladi
-        ]);
-
-        // 1️⃣ User yaratish
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        // 2️⃣ Admin tomonidan yaratilyapti, shuning uchun rol doimo 'user'
-        $role = Role::firstOrCreate(
-            ['name' => 'user'],
-        );
-
-        // 3️⃣ Pivot jadvalga biriktirish
-        $user->roles()->attach($role->id);
-
-        // 4️⃣ Token yaratish (faqat API uchun, login qilganda kerak)
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'User registered by admin',
-            'access_token' => $token,
-            'user' => $user->load('roles'),
-            'token_type' => 'Bearer'
-        ], 201);
-    }
 
 
     public function profile(Request $request)
@@ -240,9 +203,8 @@ class AuthController extends Controller
 
 
     // DELETE USER
-    public function deleteUser($id, Request $request)
+    public function deleteUser($id)
     {
-        $admin = auth()->user(); // token orqali adminni olish
 
         $user = User::query()->findOrFail($id);
 
@@ -267,58 +229,10 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Foydalanuvchi o\'chirildi va tarixga saqlandi'
+            'message' => 'Foydalanuvchi o\'chirildi va tarixga saqlandi',
+            'history' => $history,
         ]);
     }
-
-    // O'chirilgan foydalanuvchilar tarixini olish
-    public function history(Request $request, $userId)
-    {
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ]);
-        }
-
-        if($user->hasRole('superAdmin')) {
-            $history = UserHistory::query()
-                ->with('user')
-                ->where('user_id', $userId)
-                ->get();
-            return response()->json([
-                'success' => false,
-                'message' => 'You are not authorized to view this page',
-                'data' => $history
-            ]);
-        }
-
-        if($user->hasRole('admin')) {
-            $createUser = User::query()
-                ->where('created_by', $user->id)
-                ->pluck('id')
-                ->toArray();
-
-            if($userId != $user->id && !in_array($userId, $createUser)){
-                return response()->json([
-                    'success' => false,
-                ], 403);
-            }
-            $history = UserHistory::query()->with('user')->where('user_id', $userId)->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Foydalanuvchilar tarixi',
-        ]);
-    }
-
 
 
     public function user(Request $request)
@@ -415,7 +329,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $users
-        ], 200);
+        ]);
     }
 
     public function getUsers()

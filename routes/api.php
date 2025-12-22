@@ -41,9 +41,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sales/restore/{id}', [SalesController::class, 'restore']);
 
 
-    Route::get('/history/{userId}', [AuthController::class, 'history']);
-    Route::get('/product/history/{userId}/{productId}', [ProductController::class, 'productHistoryById']);
-    Route::get('/sales/history/{userId}/{saleId}', [SalesController::class, 'getSaleIdByUserId']);
 
     Route::get('/all/product-history/', [HistoryController::class, 'allHistoryByProduct']);
     Route::get('/all/sale-history/', [HistoryController::class, 'allHistoryBySale']);
@@ -54,6 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/sale-search-action', [HistoryController::class, 'saleSearchAction']);
     Route::get('/product-search-action', [HistoryController::class, 'productSearchAction']);
     Route::get('/user-search-action', [HistoryController::class, 'userSearchAction']);
+    Route::get('/history/{userId}', [HistoryController::class, 'history']);
+    Route::get('/product/history/{userId}/{productId}', [HistoryController::class, 'productHistoryById']);
+    Route::get('/sales/history/{userId}/{saleId}', [HistoryController::class, 'getSaleIdByUserId']);
 
 
 });

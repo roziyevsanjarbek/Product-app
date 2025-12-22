@@ -7,7 +7,6 @@ use App\Models\Sales;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Product;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
@@ -249,60 +248,6 @@ class SalesController extends Controller
             });
 
         return response()->json($sales);
-    }
-
-    public function showHistory(string $userId, string $saleId)
-    {
-        $sale = SaleHistory::query()->with('user')
-            ->where('user_id', $userId)
-            ->where('sale_id', $saleId)
-            ->first();
-
-        return response()->json([
-            'message' => 'SaleHistory fetched successfully',
-            'data' => $sale
-        ]);
-
-    }
-
-    public function getSaleIdByUserId(Request $request, $userId, $saleId)
-    {
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ]);
-        }
-        //Super Admin
-        if ($user->hasRole('superAdmin')) {
-            $history = SaleHistory::query()
-                ->with(['user', 'product'])
-                ->where('user_id', $userId)
-                ->where('sale_id', $saleId)
-                ->get();
-            return response()->json([
-                'success' => true,
-                'data' => $history
-
-            ]);
-        }elseif ($user->hasRole('admin')) {
-            $history = SaleHistory::query()
-                ->with('user')
-                ->where('user_id', $userId)
-                ->where('sale_id', $saleId)
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $history
-            ]);
-        }
-        return response()->json([
-            'success' => false,
-            'message' => 'User not authenticated'
-        ]);
-
     }
 
 

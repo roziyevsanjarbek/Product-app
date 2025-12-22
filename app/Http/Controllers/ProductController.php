@@ -6,13 +6,12 @@ use App\Models\Product;
 use App\Models\ProductHistory;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
 
 class ProductController extends Controller
 {
 
-    public function index(Request $request)
+    public function index()
     {
         $currentUser = auth()->user();
 
@@ -61,75 +60,6 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'data' => $products
-        ]);
-    }
-
-    public function productHistory(Request $request, $user_id)
-    {
-        $currentUser = auth()->user();
-
-        if (!$currentUser) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Foydalanuvchi tizimga kirmagan.'
-            ], 401);
-        }
-
-        // Agar superAdmin bo‘lsa — xohlagan user_id bo‘yicha ko‘ra oladi
-        if ($currentUser->hasRole('superAdmin')) {
-
-            $histories = ProductHistory::with(['product', 'user'])
-                ->where('user_id', $user_id)
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $histories
-            ]);
-        }
-
-        // Admin bo‘lsa -> faqat o‘zi yoki o‘zi yaratgan user_id bo‘yicha ko‘ra oladi
-        if ($currentUser->hasRole('admin')) {
-
-            // Adminning o‘zi yaratgan userlar
-            $createdUsers = User::where('created_by', $currentUser->id)->pluck('id')->toArray();
-
-            // Adminning o‘zi yoki yaratgan user bo‘lishi shart
-            if ($user_id != $currentUser->id && !in_array($user_id, $createdUsers)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Siz bu foydalanuvchining tarixini ko‘ra olmaysiz.'
-                ], 403);
-            }
-
-            $histories = ProductHistory::with(['product', 'user'])
-                ->where('user_id', $user_id)
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $histories
-            ]);
-        }
-
-        // Oddiy user -> faqat o‘z user_id bo‘yicha ko‘ra oladi
-        if ($user_id != $currentUser->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Siz faqat o‘zingizning tarixingizni ko‘ra olasiz.'
-            ], 403);
-        }
-
-        $histories = ProductHistory::with(['product', 'user'])
-            ->where('user_id', $currentUser->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $histories
         ]);
     }
 
@@ -242,7 +172,7 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Quantity updated',
             'data' => $product
-        ], 200);
+        ]);
     }
 
 
@@ -282,7 +212,8 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Price updated and quantity added',
             'data' => $product
-        ], 200);
+        ]);
+
     }
 
     public function forceCreate(Request $request)
@@ -324,7 +255,7 @@ class ProductController extends Controller
 
 
 
-    public function show(Request $request)
+    public function show()
     {
         $userId = auth()->id(); // login qilgan user ID
 
@@ -429,61 +360,6 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Product deleted successfully'
         ]);
-    }
-
-    public function productHistoryById(Request $request, $userId, $productId)
-    {
-        $currentUser = auth()->user();
-
-        if (!$currentUser) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Foydalanuvchi tizimga kirmagan'
-            ], 401);
-        }
-
-        // ================= SUPER ADMIN =================
-        if ($currentUser->hasRole('superAdmin')) {
-
-            $histories = ProductHistory::with(['user', 'product'])
-                ->where('user_id', $userId)
-                ->where('product_id', $productId)
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $histories
-            ]);
-        }
-
-        // ================= ADMIN =================
-        if ($currentUser->hasRole('admin')) {
-
-            $createdUsers = User::where('created_by', $currentUser->id)
-                ->pluck('id')
-                ->toArray();
-
-            // admin faqat o‘zi yoki yaratgan userni ko‘ra oladi
-            if ($userId != $currentUser->id && !in_array($userId, $createdUsers)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Siz bu foydalanuvchining tarixini ko‘ra olmaysiz'
-                ], 403);
-            }
-
-            $histories = ProductHistory::with(['user', 'product'])
-                ->where('user_id', $userId)
-                ->where('product_id', $productId)
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $histories
-            ]);
-        }
-
     }
 
 }
