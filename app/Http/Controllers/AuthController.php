@@ -147,7 +147,7 @@ class AuthController extends Controller
 
         $request->validate([
             'name'     => 'sometimes|required|string|max:255',
-            'email'    => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'email'    => 'sometimes|required|email',
             'password' => 'sometimes|min:6',
         ]);
 
