@@ -117,8 +117,39 @@
             color: var(--danger) !important;
         }
 
+    .menu-btn {
+        display: none;
+        font-size: 24px;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .nav-left {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-left .logo {
+            font-size: 16px;
+        }
+    }
+
+
+    @media (max-width: 768px) {
+        .menu-btn {
+            display: block;
+        }
+    }
+
+
+
 </style>
 <nav class="navbar">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
     <div class="nav-left">
         <h2 class="logo">My Dashboard</h2>
     </div>
@@ -162,8 +193,10 @@
     });
 
     document.addEventListener("DOMContentLoaded", function () {
-    const name = localStorage.getItem("userName") || "Admin";
-    document.getElementById("navbarUser").textContent = name;
+        document.getElementById("navbarUser").textContent = localStorage.getItem("userName") || "Admin";
 });
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('open');
+    }
 
 </script>
