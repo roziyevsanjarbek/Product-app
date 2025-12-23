@@ -1,4 +1,4 @@
-<x-header></x-header>
+<x-header :pageTitle="$pageTitle"></x-header>
 
 <x-user.navbar></x-user.navbar>
 <div class="container">

@@ -7,27 +7,32 @@ class HomeController extends Controller
 {
     public function superDashboard()
     {
-        return view('super.dashboard');
+        $pageTitle = 'Super Admin Dashboard';
+        return view('super.dashboard', compact('pageTitle'));
     }
 
     public function superProducts()
     {
-        return view('super.product');
+        $pageTitle = 'Super Admin Products';
+        return view('super.product', compact('pageTitle'));
     }
 
     public function superSold()
     {
-        return view('super.sold');
+        $pageTitle = 'Super Admin Sales Products';
+        return view('super.sold', compact('pageTitle'));
     }
 
     public function superUsers()
     {
-        return view('super.users');
+        $pageTitle = 'Super Admin Users';
+        return view('super.users', compact('pageTitle'));
     }
 
     public function superHistory()
     {
-        return view('super.history');
+        $pageTitle = 'Super Admin History';
+        return view('super.history', compact('pageTitle'));
     }
 
 
@@ -36,36 +41,46 @@ class HomeController extends Controller
     }
 
     public function superProfile(){
-        return view('super.profile');
+
+        $pageTitle = 'Super Admin Profile';
+        return view('super.profile', compact('pageTitle'));
     }
 
 
     public function dashboard()
     {
-        return view('admin.dashboard');
+        $pageTitle = 'Admin Dashboard';
+        return view('admin.dashboard', compact('pageTitle'));
     }
 
     public function products()
     {
-        return view('admin.product');
+        $pageTitle = 'Admin Products';
+        return view('admin.product', compact('pageTitle'));
     }
 
     public function sold()
     {
-        return view('admin.sold');
+        $pageTitle = 'Admin Sales Products';
+        return view('admin.sold', compact('pageTitle'));
     }
 
     public function users()
     {
-        return view('admin.users');
+        $pageTitle = 'Admin Users';
+        return view('admin.users', compact('pageTitle'));
     }
 
     public function profile(){
-        return view('admin.profile');
+
+        $pageTitle = 'Admin Profile';
+        return view('admin.profile', compact('pageTitle'));
     }
 
     public function history(){
-        return view('admin.history');
+
+        $pageTitle = 'Admin History';
+        return view('admin.history', compact('pageTitle'));
     }
 
 
@@ -82,26 +97,32 @@ class HomeController extends Controller
 
     public function userDashboard()
     {
-        return view('user.dashboard');
+
+        $pageTitle = 'User Dashboard';
+        return view('user.dashboard', compact('pageTitle'));
     }
 
     public function userProducts()
     {
-        return view('user.product');
+        $pageTitle = 'User Products';
+        return view('user.product', compact('pageTitle'));
     }
 
     public function userSold(){
-        return view('user.sold');
+
+        $pageTitle = 'User Sales Products';
+        return view('user.sold', compact('pageTitle'));
     }
 
       public function userProfile(){
-        return view('user.profile');
+
+        $pageTitle = 'User Profile';
+        return view('user.profile', compact('pageTitle'));
     }
 
     public function login()
     {
         return view('login');
     }
-
 
 }

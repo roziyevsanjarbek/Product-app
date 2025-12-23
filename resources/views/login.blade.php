@@ -104,7 +104,7 @@
 
         .form-options {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             margin-bottom: 30px;
             font-size: 14px;
@@ -164,62 +164,6 @@
             transform: translateY(0);
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 30px 0;
-            gap: 10px;
-            color: #ccc;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e0e0e0;
-        }
-
-        .divider-text {
-            color: #999;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .social-login {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .social-btn {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            background: white;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .social-btn:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
-        .login-footer {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
-        }
 
         .login-footer a {
             color: #667eea;
@@ -242,9 +186,6 @@
                 padding: 30px 20px;
             }
 
-            .social-login {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -279,15 +220,12 @@
             >
         </div>
 
+        <button type="submit" class="login-btn">Sign In</button>
         <div class="form-options">
             <div class="checkbox-group">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">Remember me</label>
+                <a href="/" class="forgot-password">Bosh Sahifaga Qaytish</a>
             </div>
-            <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
-
-        <button type="submit" class="login-btn">Sign In</button>
     </form>
 
     <div style="padding: 0 30px;">

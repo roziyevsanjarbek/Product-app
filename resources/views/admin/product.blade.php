@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<x-header></x-header>
+<x-header  :pageTitle="$pageTitle"></x-header>
 
 <x-navbar></x-navbar>
 <div class="container">

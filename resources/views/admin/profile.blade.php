@@ -1,4 +1,4 @@
-<x-profile></x-profile>
+<x-profile  :pageTitle="$pageTitle"></x-profile>
 <!-- Sidebar Navigation -->
 <div class="main-content">
     <div class="container">
