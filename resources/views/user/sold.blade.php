@@ -205,9 +205,10 @@ async function loadSales(page = 1) {
             return;
         }
 
-        data.data.forEach(sale => {
+        data.data.forEach((sale, index) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
+                <td>${index + 1}</td>
                 <td>${sale.product.name}</td>
                 <td>${sale.quantity}</td>
                 <td>${sale.product.price}</td>

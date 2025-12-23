@@ -45,6 +45,7 @@
             <table>
                 <thead>
                 <tr>
+                    <td>#</td>
                     <th>Mahsulot Nomi</th>
                     <th>Sotilgan Sonı</th>
                     <th>Birlik Narxi (so'm)</th>
@@ -452,9 +453,10 @@
                 return;
             }
 
-            data.data.data.forEach(sale => {
+            data.data.data.forEach((sale, index) => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
+                <td>${index + 1}</td>
                 <td>${sale.product.name}</td>
                 <td>${sale.quantity}</td>
                 <td>${sale.product.price}</td>

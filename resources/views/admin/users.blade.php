@@ -51,6 +51,7 @@
             <table>
                 <thead>
                 <tr>
+                    <th>#</th>
                     <th>Ism Familya</th>
                     <th>Email</th>
                     <th>Roli</th>
@@ -260,9 +261,10 @@
 
             tbody.innerHTML = ""; // oldingi contentni tozalash
 
-            users.forEach(user => {
+            users.forEach((user, index) => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
+                <td>${index + 1}</td>
                 <td>${user.name}</td>
                 <td>${user.email}</td>
                 <td>${user.role || "user"}</td>

@@ -53,6 +53,7 @@
             <table>
                 <thead>
                 <tr>
+                    <th>#</th>
                     <th>Ism Familya</th>
                     <th>Email</th>
                     <th>Roli</th>
@@ -264,7 +265,7 @@
 
             tbody.innerHTML = ""; // oldingi contentni tozalash
 
-           users.forEach(user => {
+           users.forEach((user, index) => {
             // user.roles arraydan birinchi rolni olish
             const roleName = user.roles && user.roles.length > 0
             ? user.roles.map(r => r.name).join(", ")
@@ -273,6 +274,7 @@
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
+                <td>${index + 1}</td>
                 <td>${user.name}</td>
                 <td>${user.email}</td>
                 <td>${roleName}</td>

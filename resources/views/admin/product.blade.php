@@ -44,6 +44,7 @@
                 <table>
                     <thead>
                     <tr>
+                        <td>#</td>
                         <th>Mahsulot Nomi</th>
                         <th>Sonı</th>
                         <th>Narxi (so'm)</th>
@@ -344,10 +345,11 @@
 
             tbody.innerHTML = "";
 
-            products.forEach(product => {
+            products.forEach((product, index) => {
                 const total = parseFloat(product.quantity) * parseFloat(product.price);
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
+                <td>${index + 1}</td>
                 <td>${product.name}</td>
                 <td>${product.quantity}</td>
                 <td>${Number(product.price).toLocaleString()}</td>
