@@ -506,6 +506,30 @@ tr:hover {
     justify-content: center;     /* justify-center */
     align-items: center;         /* align-center (to‘g‘risi: items-center) */
 }
+a {
+    text-decoration: none;   /* tagiga chizishni olib tashlaydi */
+    color: inherit;          /* ota element rangini oladi */
+}
+
+a:visited {
+    color: inherit;          /* bosilgandan keyin ham rang o‘zgarmaydi */
+}
+
+a:active {
+    color: inherit;          /* bosilganda qizil bo‘lib ketmasin */
+}
+.stat-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.stat-link:visited,
+.stat-link:active,
+.stat-link:hover {
+    color: inherit;
+}
+
 @keyframes progressBar {
     from { transform: scaleX(1); }
     to { transform: scaleX(0); }

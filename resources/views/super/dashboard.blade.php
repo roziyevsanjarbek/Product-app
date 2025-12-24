@@ -9,26 +9,34 @@
     <div class="main-content">
         <h1>Dashboard</h1>
         <div class="stats-grid">
+            <a href="/super/products" class="stat-link">
             <div class="stat-card">
                 <h3>Mavjud Mahsulotlar</h3>
                 <div class="stat-value" id="totalProducts">0</div>
                 <div class="stat-label" id="totalProductsValue">Jami qiymati: 0 so'm</div>
             </div>
+            </a>
+            <a href="/super/sold" class="stat-link">
             <div class="stat-card">
                 <h3>Sotilgan Mahsulotlar</h3>
                 <div class="stat-value" id="soldCount">0</div>
                 <div class="stat-label" id="soldValue">Jami daromad: 0 so'm</div>
             </div>
+            </a>
+            <a href="/super/products" class="stat-link">
             <div class="stat-card">
                 <h3>Qolgan Mahsulotlar</h3>
                 <div class="stat-value" id="remainingCount">0</div>
                 <div class="stat-label" id="remainingValue">Qolgan qiymati: 0 so'm</div>
             </div>
+            </a>
+            <a href="/super/users" class="stat-link">
             <div class="stat-card">
                 <h3>Jami Foydalanuvchilar</h3>
                 <div class="stat-value" id="userCount">0</div>
                 <div class="stat-label">Sistemada roʻyxatdan oʻtgan</div>
             </div>
+            </a>
         </div>
     </div>
 </div>
